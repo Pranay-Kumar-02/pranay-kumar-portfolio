@@ -6,6 +6,7 @@ import { config } from "@/data/config";
 import Script from "next/script";
 import SiteFrame from "@/components/site-frame";
 import { Providers } from "@/components/providers";
+import TabPersonality from "@/components/tab-personality";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { UMAMI_SRC } from "@/lib/umami";
 
@@ -86,6 +87,7 @@ export default function RootLayout({
         )}
       </head>
       <body suppressHydrationWarning>
+        <TabPersonality />
         <Providers>
           <SiteFrame>{children}</SiteFrame>
         </Providers>

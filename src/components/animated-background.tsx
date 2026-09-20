@@ -1,6 +1,7 @@
 "use client";
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import { Application, SPEObject, SplineEvent } from "@splinetool/runtime";
+import { Raycaster, Vector2, type Mesh, type Object3D } from "three";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 const Spline = React.lazy(() => import("@splinetool/react-spline"));
@@ -14,6 +15,8 @@ import { useSounds } from "./realtime/hooks/use-sounds";
 import { usePerfProfile } from "@/hooks/use-perf-profile";
 
 import { setActiveSkill } from "@/lib/active-skill";
+import { subscribeToInterest } from "@/lib/active-interest";
+import type { Interest } from "@/data/interests";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -37,6 +40,12 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
   const [keyboardRevealed, setKeyboardRevealed] = useState(false);
 
   const activeKeyObjRef = useRef<SPEObject | null>(null);
+  const currentInterestRef = useRef<Interest | null>(null);
+  const keyBaseMapRef = useRef<Map<string, { position: { x: number; y: number; z: number }; scale: { x: number; y: number; z: number } }>>(new Map());
+  const raycasterRef = useRef(new Raycaster());
+  const mouseRef = useRef(new Vector2());
+  const meshToKeyMapRef = useRef(new Map<Object3D, { skill: Skill; keyObj: SPEObject }>());
+  const keyMeshListRef = useRef<Object3D[]>([]);
 
   const resetActiveKeyVisual = () => {
     if (activeKeyObjRef.current) {
@@ -60,51 +69,36 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
     });
   };
 
-  // --- Event Handlers ---
-
-  const handleMouseHover = (e: SplineEvent) => {
-    if (!splineApp) return;
-
-    if (!e.target.name || e.target.name === "body" || e.target.name === "platform" || e.target.name === "keyboard") {
-      if (activeKeyObjRef.current) {
-        resetActiveKeyVisual();
-        playReleaseSound();
-      }
-      if (selectedSkillRef.current) {
-        setSelectedSkill(null);
-        selectedSkillRef.current = null;
-        setActiveSkill(null);
-      }
-      return;
-    }
-
-    if (selectedSkillRef.current?.name !== e.target.name) {
-      const skill = SKILLS[e.target.name as SkillNames];
-      if (skill) {
-        if (activeKeyObjRef.current && activeKeyObjRef.current.name !== e.target.name) {
-          gsap.to(activeKeyObjRef.current.position, {
-            y: 0,
-            duration: 0.2,
-            ease: "back.out(2)",
-            overwrite: "auto",
-          });
-        }
-
-        const keyObj = splineApp.findObjectByName(e.target.name);
-        if (keyObj) {
-          pressKeyVisual(keyObj, -13);
-        }
-
-        playPressSound();
-        setSelectedSkill(skill);
-        selectedSkillRef.current = skill;
-        setActiveSkill(skill);
-      }
-    }
-  };
-
   const handleSplineInteractions = () => {
     if (!splineApp) return;
+
+    // Index all 24 keycaps and their child meshes
+    const meshToKeyMap = new Map<Object3D, { skill: Skill; keyObj: SPEObject }>();
+    const keyMeshList: Object3D[] = [];
+
+    const threeScene = (splineApp as unknown as { _scene?: Object3D })._scene;
+
+    Object.values(SKILLS).forEach((skill) => {
+      const keyObj = splineApp.findObjectByName(skill.name);
+      const threeObj = threeScene?.getObjectByName(skill.name);
+      if (keyObj && threeObj) {
+        if (!keyBaseMapRef.current.has(skill.name)) {
+          keyBaseMapRef.current.set(skill.name, {
+            position: { x: keyObj.position.x, y: keyObj.position.y, z: keyObj.position.z },
+            scale: { x: keyObj.scale.x, y: keyObj.scale.y, z: keyObj.scale.z },
+          });
+        }
+        threeObj.traverse((child) => {
+          if ((child as Mesh).isMesh) {
+            meshToKeyMap.set(child, { skill, keyObj });
+            keyMeshList.push(child);
+          }
+        });
+      }
+    });
+
+    meshToKeyMapRef.current = meshToKeyMap;
+    keyMeshListRef.current = keyMeshList;
 
     const isInputFocused = () => {
       const activeElement = document.activeElement;
@@ -116,16 +110,268 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
       );
     };
 
-    splineApp.addEventListener("keyUp", () => {
+    const getTargetYForSkill = (skillName: string) => {
+      const base = keyBaseMapRef.current.get(skillName);
+      const baseY = base ? base.position.y : 0;
+      const curInterest = currentInterestRef.current;
+      if (!curInterest) return baseY;
+      if (curInterest.primaryKeys.includes(skillName as SkillNames)) return baseY - 26;
+      if (curInterest.secondaryKeys.includes(skillName as SkillNames)) return baseY - 12;
+      return baseY + 6;
+    };
+
+    const handleKeyEnter = (skill: Skill, keyObj: SPEObject) => {
+      if (selectedSkillRef.current?.name === skill.name) return;
+
+      if (activeKeyObjRef.current && activeKeyObjRef.current !== keyObj) {
+        const prevSkillName = selectedSkillRef.current?.name || "";
+        const prevRestY = getTargetYForSkill(prevSkillName);
+        gsap.to(activeKeyObjRef.current.position, {
+          y: prevRestY,
+          duration: 0.18,
+          ease: "back.out(2)",
+          overwrite: "auto",
+        });
+      }
+
+      activeKeyObjRef.current = keyObj;
+      const targetRestY = getTargetYForSkill(skill.name);
+      gsap.to(keyObj.position, {
+        y: targetRestY - 13,
+        duration: 0.07,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+
+      playPressSound();
+      selectedSkillRef.current = skill;
+      setSelectedSkill(skill);
+      setActiveSkill(skill);
+    };
+
+    const handleKeyLeave = () => {
+      if (!selectedSkillRef.current) return;
+
+      if (activeKeyObjRef.current) {
+        const prevSkillName = selectedSkillRef.current?.name || "";
+        const prevRestY = getTargetYForSkill(prevSkillName);
+        gsap.to(activeKeyObjRef.current.position, {
+          y: prevRestY,
+          duration: 0.2,
+          ease: "back.out(2)",
+          overwrite: "auto",
+        });
+        activeKeyObjRef.current = null;
+      }
+
+      playReleaseSound();
+      selectedSkillRef.current = null;
+      setSelectedSkill(null);
+      setActiveSkill(null);
+    };
+
+    const performRaycastAt = (clientX: number, clientY: number) => {
+      if (!splineApp || isInputFocused()) return null;
+      const canvas = splineApp.canvas;
+      const camera = (splineApp as unknown as { _camera?: any })._camera;
+      if (!canvas || !camera) return null;
+
+      const rect = canvas.getBoundingClientRect();
+      if (
+        clientX < rect.left ||
+        clientX > rect.right ||
+        clientY < rect.top ||
+        clientY > rect.bottom
+      ) {
+        return null;
+      }
+
+      const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1;
+      const ndcY = -((clientY - rect.top) / rect.height) * 2 + 1;
+      mouseRef.current.set(ndcX, ndcY);
+
+      const raycaster = raycasterRef.current;
+      raycaster.setFromCamera(mouseRef.current, camera);
+
+      const intersects = raycaster.intersectObjects(keyMeshListRef.current, false);
+      if (typeof window !== "undefined") {
+        (window as any).__lastIntersects = intersects;
+      }
+      if (intersects.length > 0) {
+        for (let i = 0; i < intersects.length; i++) {
+          const match = meshToKeyMapRef.current.get(intersects[i].object);
+          if (match) return match;
+        }
+      }
+      return null;
+    };
+
+    if (typeof window !== "undefined") {
+      (window as any).__performRaycast = performRaycastAt;
+      (window as any).__keyMeshList = keyMeshListRef.current;
+      (window as any).__meshToKeyMap = meshToKeyMapRef.current;
+      (window as any).__raycaster = raycasterRef.current;
+    }
+
+    const onPointerMove = (e: PointerEvent) => {
+      const match = performRaycastAt(e.clientX, e.clientY);
+      if (match) {
+        handleKeyEnter(match.skill, match.keyObj);
+      } else {
+        handleKeyLeave();
+      }
+    };
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (isInputFocused()) return;
+      const match = performRaycastAt(e.clientX, e.clientY);
+      if (match) {
+        handleKeyEnter(match.skill, match.keyObj);
+        const targetRestY = getTargetYForSkill(match.skill.name);
+        gsap.to(match.keyObj.position, {
+          y: targetRestY - 18,
+          duration: 0.05,
+          ease: "power2.out",
+          overwrite: "auto",
+        });
+        playPressSound();
+      }
+    };
+
+    const onPointerUp = () => {
+      if (isInputFocused()) return;
+      if (activeKeyObjRef.current && selectedSkillRef.current) {
+        const targetRestY = getTargetYForSkill(selectedSkillRef.current.name);
+        gsap.to(activeKeyObjRef.current.position, {
+          y: targetRestY - 13,
+          duration: 0.15,
+          ease: "back.out(2)",
+          overwrite: "auto",
+        });
+        playReleaseSound();
+      }
+    };
+
+    const onPointerLeaveWindow = () => {
+      handleKeyLeave();
+    };
+
+    const applyInterestClustering = (interest: Interest | null) => {
+      currentInterestRef.current = interest;
+      if (!splineApp) return;
+
+      if (!interest) {
+        keyBaseMapRef.current.forEach((base, keyName) => {
+          const keyObj = splineApp.findObjectByName(keyName);
+          if (keyObj) {
+            const isHovered = activeKeyObjRef.current === keyObj;
+            const targetY = isHovered ? base.position.y - 13 : base.position.y;
+            gsap.to(keyObj.position, {
+              x: base.position.x,
+              y: targetY,
+              z: base.position.z,
+              duration: 0.65,
+              ease: "power2.out",
+              overwrite: "auto",
+            });
+            gsap.to(keyObj.scale, {
+              x: base.scale.x,
+              y: base.scale.y,
+              z: base.scale.z,
+              duration: 0.65,
+              ease: "power2.out",
+              overwrite: "auto",
+            });
+          }
+        });
+        return;
+      }
+
+      let sumX = 0;
+      let sumZ = 0;
+      let count = 0;
+      interest.primaryKeys.forEach((keyName) => {
+        const base = keyBaseMapRef.current.get(keyName);
+        if (base) {
+          sumX += base.position.x;
+          sumZ += base.position.z;
+          count++;
+        }
+      });
+      const centroidX = count > 0 ? sumX / count : 0;
+      const centroidZ = count > 0 ? sumZ / count : 0;
+
+      keyBaseMapRef.current.forEach((base, keyName) => {
+        const keyObj = splineApp.findObjectByName(keyName);
+        if (!keyObj) return;
+
+        const isPrimary = interest.primaryKeys.includes(keyName as SkillNames);
+        const isSecondary = interest.secondaryKeys.includes(keyName as SkillNames);
+
+        let targetY = base.position.y;
+        let targetX = base.position.x;
+        let targetZ = base.position.z;
+        let targetScaleX = base.scale.x;
+        let targetScaleY = base.scale.y;
+        let targetScaleZ = base.scale.z;
+
+        if (isPrimary) {
+          targetY = base.position.y - 26;
+          targetX = base.position.x + (centroidX - base.position.x) * 0.14;
+          targetZ = base.position.z + (centroidZ - base.position.z) * 0.14;
+          targetScaleX = base.scale.x * 1.10;
+          targetScaleY = base.scale.y * 1.10;
+          targetScaleZ = base.scale.z * 1.10;
+        } else if (isSecondary) {
+          targetY = base.position.y - 12;
+          targetX = base.position.x + (centroidX - base.position.x) * 0.07;
+          targetZ = base.position.z + (centroidZ - base.position.z) * 0.07;
+          targetScaleX = base.scale.x * 1.04;
+          targetScaleY = base.scale.y * 1.04;
+          targetScaleZ = base.scale.z * 1.04;
+        } else {
+          targetY = base.position.y + 6;
+          targetScaleX = base.scale.x * 0.94;
+          targetScaleY = base.scale.y * 0.94;
+          targetScaleZ = base.scale.z * 0.94;
+        }
+
+        if (activeKeyObjRef.current === keyObj) {
+          targetY -= 13;
+        }
+
+        gsap.to(keyObj.position, {
+          x: targetX,
+          y: targetY,
+          z: targetZ,
+          duration: 0.65,
+          ease: "power2.out",
+          overwrite: "auto",
+        });
+        gsap.to(keyObj.scale, {
+          x: targetScaleX,
+          y: targetScaleY,
+          z: targetScaleZ,
+          duration: 0.65,
+          ease: "power2.out",
+          overwrite: "auto",
+        });
+      });
+    };
+
+    const unsubInterest = subscribeToInterest(applyInterestClustering);
+
+    // Spline keyboard events (physical keyboard input)
+    const onSplineKeyUp = () => {
       if (!splineApp || isInputFocused()) return;
       playReleaseSound();
       resetActiveKeyVisual();
       setActiveSkill(null);
       setSelectedSkill(null);
       selectedSkillRef.current = null;
-    });
+    };
 
-    splineApp.addEventListener("keyDown", (e) => {
+    const onSplineKeyDown = (e: SplineEvent) => {
       if (!splineApp || isInputFocused()) return;
       const skill = SKILLS[e.target.name as SkillNames];
       if (skill) {
@@ -138,37 +384,30 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
         selectedSkillRef.current = skill;
         setActiveSkill(skill);
       }
-    });
+    };
 
-    splineApp.addEventListener("mouseDown", (e) => {
-      if (!splineApp || isInputFocused()) return;
-      const skill = SKILLS[e.target.name as SkillNames];
-      if (skill) {
-        const keyObj = splineApp.findObjectByName(e.target.name);
-        if (keyObj) {
-          pressKeyVisual(keyObj, -18);
-        }
-        playPressSound();
-        setSelectedSkill(skill);
-        selectedSkillRef.current = skill;
-        setActiveSkill(skill);
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointerleave", onPointerLeaveWindow);
+
+    splineApp.addEventListener("keyUp", onSplineKeyUp);
+    splineApp.addEventListener("keyDown", onSplineKeyDown);
+
+    return () => {
+      unsubInterest();
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointerleave", onPointerLeaveWindow);
+
+      try {
+        splineApp.removeEventListener("keyUp", onSplineKeyUp);
+        splineApp.removeEventListener("keyDown", onSplineKeyDown);
+      } catch {
+        /* Spline disposed */
       }
-    });
-
-    splineApp.addEventListener("mouseUp", () => {
-      if (!splineApp || isInputFocused()) return;
-      playReleaseSound();
-      if (activeKeyObjRef.current) {
-        gsap.to(activeKeyObjRef.current.position, {
-          y: -13,
-          duration: 0.18,
-          ease: "back.out(2)",
-          overwrite: "auto",
-        });
-      }
-    });
-
-    splineApp.addEventListener("mouseHover", handleMouseHover);
+    };
   };
 
   // --- Animation Setup Helpers ---
@@ -221,7 +460,9 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
     // Section transitions
     return [
       createSectionTimeline("#skills", "skills", "hero"),
-      createSectionTimeline("#projects", "projects", "skills", "top 70%"),
+      createSectionTimeline("#interests", "interests", "skills"),
+      createSectionTimeline("#experience", "experience", "interests"),
+      createSectionTimeline("#projects", "projects", "experience", "top 70%"),
       createSectionTimeline("#contact", "contact", "projects", "top 30%"),
     ].filter(Boolean) as gsap.core.Timeline[];
   };
@@ -362,21 +603,21 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
   // Initialize GSAP and Spline interactions
   useEffect(() => {
     if (!splineApp) return;
-    handleSplineInteractions();
+    const cleanupInteractions = handleSplineInteractions();
     const timelines = setupScrollAnimations();
     bongoAnimationRef.current = getBongoAnimation();
     keycapAnimationsRef.current = getKeycapsAnimation();
     return () => {
-      bongoAnimationRef.current?.stop()
-      keycapAnimationsRef.current?.stop()
+      cleanupInteractions?.();
+      bongoAnimationRef.current?.stop();
+      keycapAnimationsRef.current?.stop();
       // Kill the section ScrollTriggers so they don't orphan when the scene
       // unmounts (e.g. toggling reduced motion) and fire on the disposed app.
       timelines.forEach((tl) => {
         tl.scrollTrigger?.kill();
         tl.kill();
       });
-    }
-
+    };
   }, [splineApp, isMobile]);
 
 

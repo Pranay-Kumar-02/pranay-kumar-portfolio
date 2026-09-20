@@ -1,5 +1,5 @@
 const config = {
-  title: "Pranay Kumar | Software Engineer & AI Systems Developer",
+  title: "Pranay Kumar | AI & Software Systems Engineer",
   description: {
     long: "Engineering portfolio of Pranay Kumar Vonamala. Computer Science & Information Security student at VIT Vellore building software systems across AI, Cybersecurity, and Full-Stack Engineering.",
     short:

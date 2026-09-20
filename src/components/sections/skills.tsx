@@ -85,7 +85,7 @@ const SkillsSection = () => {
 
         {/* Clean 2D Selected Skill Information Card */}
         <AnimatePresence>
-          {isInView && (
+          {(isInView || Boolean(activeSkill)) && (
             <motion.aside
               aria-label="Selected Skill Information"
               initial={{ opacity: 0, y: 15 }}
@@ -94,76 +94,66 @@ const SkillsSection = () => {
               transition={{ duration: 0.25, ease: "easeOut" }}
               className="fixed bottom-6 left-4 sm:left-6 md:left-12 lg:left-16 z-30 max-w-[340px] sm:max-w-sm md:max-w-md w-[calc(100vw-2rem)] sm:w-full pointer-events-auto"
             >
-              <AnimatePresence mode="wait">
-                {activeSkill ? (
-                  <motion.div
-                    key={activeSkill.name}
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.96 }}
-                    transition={{ duration: 0.18, ease: "easeOut" }}
-                    style={{ "--skill-color": activeSkill.color } as CSSProperties}
-                    className={cn(
-                      "w-full flex items-start gap-3.5 sm:gap-4 p-4 sm:p-5 rounded-2xl",
-                      "bg-card/95 dark:bg-[#0c1017]/95 backdrop-blur-2xl",
-                      "border border-[var(--skill-color)]/40 shadow-2xl",
-                      "transition-colors duration-200"
-                    )}
+              {activeSkill ? (
+                <div
+                  key={activeSkill.name}
+                  style={{ "--skill-color": activeSkill.color } as CSSProperties}
+                  className={cn(
+                    "w-full flex items-start gap-3.5 sm:gap-4 p-4 sm:p-5 rounded-2xl",
+                    "bg-card/95 dark:bg-[#0c1017]/95 backdrop-blur-2xl",
+                    "border border-[var(--skill-color)]/40 shadow-2xl",
+                    "transition-all duration-150"
+                  )}
+                >
+                  {/* Brand Icon Box */}
+                  <div
+                    style={{
+                      backgroundColor: `${activeSkill.color}18`,
+                      borderColor: `${activeSkill.color}45`,
+                    }}
+                    className="shrink-0 size-12 rounded-xl flex items-center justify-center border p-2.5 shadow-sm transition-colors duration-150"
                   >
-                    {/* Brand Icon Box */}
-                    <div
-                      style={{
-                        backgroundColor: `${activeSkill.color}18`,
-                        borderColor: `${activeSkill.color}45`,
-                      }}
-                      className="shrink-0 size-12 rounded-xl flex items-center justify-center border p-2.5 shadow-sm"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={activeSkill.icon}
-                        alt={activeSkill.label}
-                        className="size-7 object-contain drop-shadow"
-                      />
-                    </div>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={activeSkill.icon}
+                      alt={activeSkill.label}
+                      className="size-7 object-contain drop-shadow"
+                    />
+                  </div>
 
-                    {/* Skill Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <h4 className="font-bold text-base sm:text-lg tracking-tight text-foreground truncate">
-                          {activeSkill.label}
-                        </h4>
-                        <span
-                          style={{
-                            color: activeSkill.color,
-                            backgroundColor: `${activeSkill.color}15`,
-                            borderColor: `${activeSkill.color}35`,
-                          }}
-                          className="text-[11px] font-mono px-2 py-0.5 rounded-full border font-medium shrink-0"
-                        >
-                          Verified
-                        </span>
-                      </div>
-                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-1 line-clamp-3">
-                        {activeSkill.shortDescription}
-                      </p>
+                  {/* Skill Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="font-bold text-base sm:text-lg tracking-tight text-foreground truncate">
+                        {activeSkill.label}
+                      </h4>
+                      <span
+                        style={{
+                          color: activeSkill.color,
+                          backgroundColor: `${activeSkill.color}15`,
+                          borderColor: `${activeSkill.color}35`,
+                        }}
+                        className="text-[11px] font-mono px-2 py-0.5 rounded-full border font-medium shrink-0 transition-colors duration-150"
+                      >
+                        Verified
+                      </span>
                     </div>
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    key="idle-hint"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex items-center gap-2.5 text-xs sm:text-sm text-muted-foreground/90 px-4 py-3 rounded-2xl border border-border/70 bg-card/90 dark:bg-[#0c1017]/90 backdrop-blur-xl shadow-lg"
-                  >
-                    <div className="size-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                      <Sparkles className="size-3.5 animate-pulse" />
-                    </div>
-                    <span>Hover or press any 3D keycap to inspect skill details</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-1 line-clamp-3">
+                      {activeSkill.shortDescription}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  key="idle-hint"
+                  className="flex items-center gap-2.5 text-xs sm:text-sm text-muted-foreground/90 px-4 py-3 rounded-2xl border border-border/70 bg-card/90 dark:bg-[#0c1017]/90 backdrop-blur-xl shadow-lg"
+                >
+                  <div className="size-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    <Sparkles className="size-3.5 animate-pulse" />
+                  </div>
+                  <span>Hover or press any 3D keycap to inspect skill details</span>
+                </div>
+              )}
             </motion.aside>
           )}
         </AnimatePresence>
