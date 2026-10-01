@@ -73,10 +73,10 @@ export const InterestsSection = () => {
             </span>
           </div>
 
-          {/* Section Heading with High-End Gradient */}
+          {/* Section Heading with High-End Animated Gradient */}
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground flex flex-wrap items-center gap-2.5">
             <span>Technical</span>
-            <span className="bg-gradient-to-r from-sky-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">
+            <span className="animated-gradient-text">
               Interests & Focus
             </span>
           </h2>

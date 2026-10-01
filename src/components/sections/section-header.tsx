@@ -11,11 +11,12 @@ export const SectionHeader = ({ id, title, desc, className }: { id: string, titl
         <BoxReveal width="100%">
           <h2
             className={cn(
-              "text-4xl text-center md:text-7xl font-bold",
-              "text-foreground"
+              "text-4xl text-center md:text-7xl font-bold tracking-tight"
             )}
           >
-            {title}
+            <span className="animated-gradient-text">
+              {title}
+            </span>
           </h2>
         </BoxReveal>
       </Link>

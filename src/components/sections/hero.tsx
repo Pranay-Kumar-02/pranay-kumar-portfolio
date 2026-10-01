@@ -50,14 +50,18 @@ const HeroSection = () => {
                     <TooltipTrigger asChild>
                       <h1
                         className={cn(
-                          "-ml-[6px] leading-none text-transparent text-slate-800 text-left",
+                          "-ml-[6px] leading-none text-left",
                           "font-bold text-7xl md:text-7xl lg:text-8xl xl:text-9xl",
-                          "cursor-default text-edge-outline font-display "
+                          "cursor-default font-display tracking-tight"
                         )}
                       >
-                        {config.author.split(" ")[0]}
+                        <span className="animated-gradient-text">
+                          {config.author.split(" ")[0]}
+                        </span>
                         <br className="md:block hidden" />
-                        {config.author.split(" ")[1]}
+                        <span className="animated-gradient-text">
+                          {config.author.split(" ")[1]}
+                        </span>
                       </h1>
                     </TooltipTrigger>
                     <TooltipContent
