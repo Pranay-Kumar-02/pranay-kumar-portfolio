@@ -115,9 +115,8 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
       const baseY = base ? base.position.y : 0;
       const curInterest = currentInterestRef.current;
       if (!curInterest) return baseY;
-      if (curInterest.primaryKeys.includes(skillName as SkillNames)) return baseY - 26;
-      if (curInterest.secondaryKeys.includes(skillName as SkillNames)) return baseY - 12;
-      return baseY + 6;
+      if (curInterest.primaryKeys.includes(skillName as SkillNames)) return baseY + 40;
+      return baseY;
     };
 
     const handleKeyEnter = (skill: Skill, keyObj: SPEObject) => {
@@ -261,98 +260,61 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
       if (!splineApp) return;
 
       if (!interest) {
+        // Reset: all keys smoothly return to their exact original base positions
         keyBaseMapRef.current.forEach((base, keyName) => {
           const keyObj = splineApp.findObjectByName(keyName);
-          if (keyObj) {
-            const isHovered = activeKeyObjRef.current === keyObj;
-            const targetY = isHovered ? base.position.y - 13 : base.position.y;
-            gsap.to(keyObj.position, {
-              x: base.position.x,
-              y: targetY,
-              z: base.position.z,
-              duration: 0.65,
-              ease: "power2.out",
-              overwrite: "auto",
-            });
-            gsap.to(keyObj.scale, {
-              x: base.scale.x,
-              y: base.scale.y,
-              z: base.scale.z,
-              duration: 0.65,
-              ease: "power2.out",
-              overwrite: "auto",
-            });
-          }
+          if (!keyObj) return;
+          const isHovered = activeKeyObjRef.current === keyObj;
+          gsap.to(keyObj.position, {
+            x: base.position.x,
+            y: isHovered ? base.position.y - 13 : base.position.y,
+            z: base.position.z,
+            duration: 0.55,
+            ease: "back.out(1.2)",
+            overwrite: "auto",
+          });
+          gsap.to(keyObj.scale, {
+            x: base.scale.x,
+            y: base.scale.y,
+            z: base.scale.z,
+            duration: 0.55,
+            ease: "back.out(1.2)",
+            overwrite: "auto",
+          });
         });
         return;
       }
 
-      let sumX = 0;
-      let sumZ = 0;
-      let count = 0;
-      interest.primaryKeys.forEach((keyName) => {
-        const base = keyBaseMapRef.current.get(keyName);
-        if (base) {
-          sumX += base.position.x;
-          sumZ += base.position.z;
-          count++;
-        }
-      });
-      const centroidX = count > 0 ? sumX / count : 0;
-      const centroidZ = count > 0 ? sumZ / count : 0;
-
+      // VERTICAL LIFT ONLY — strictly no horizontal scaling or expansion
+      // Relevant keys: rise vertically from their existing position (+40 units in local Y)
+      // Unselected keys: stay in their normal positions (base.position.y)
+      // Scale is strictly kept at base scale (1.0x) so keys never get huge or bloated
       keyBaseMapRef.current.forEach((base, keyName) => {
         const keyObj = splineApp.findObjectByName(keyName);
         if (!keyObj) return;
 
-        const isPrimary = interest.primaryKeys.includes(keyName as SkillNames);
-        const isSecondary = interest.secondaryKeys.includes(keyName as SkillNames);
+        const isSelected = interest.primaryKeys.includes(keyName as SkillNames);
 
-        let targetY = base.position.y;
-        let targetX = base.position.x;
-        let targetZ = base.position.z;
-        let targetScaleX = base.scale.x;
-        let targetScaleY = base.scale.y;
-        let targetScaleZ = base.scale.z;
+        let targetY = isSelected ? base.position.y + 40 : base.position.y;
 
-        if (isPrimary) {
-          targetY = base.position.y - 26;
-          targetX = base.position.x + (centroidX - base.position.x) * 0.14;
-          targetZ = base.position.z + (centroidZ - base.position.z) * 0.14;
-          targetScaleX = base.scale.x * 1.10;
-          targetScaleY = base.scale.y * 1.10;
-          targetScaleZ = base.scale.z * 1.10;
-        } else if (isSecondary) {
-          targetY = base.position.y - 12;
-          targetX = base.position.x + (centroidX - base.position.x) * 0.07;
-          targetZ = base.position.z + (centroidZ - base.position.z) * 0.07;
-          targetScaleX = base.scale.x * 1.04;
-          targetScaleY = base.scale.y * 1.04;
-          targetScaleZ = base.scale.z * 1.04;
-        } else {
-          targetY = base.position.y + 6;
-          targetScaleX = base.scale.x * 0.94;
-          targetScaleY = base.scale.y * 0.94;
-          targetScaleZ = base.scale.z * 0.94;
-        }
-
+        // Hovered key receives standard tactile press offset
         if (activeKeyObjRef.current === keyObj) {
           targetY -= 13;
         }
 
         gsap.to(keyObj.position, {
-          x: targetX,
+          x: base.position.x,
           y: targetY,
-          z: targetZ,
-          duration: 0.65,
-          ease: "power2.out",
+          z: base.position.z,
+          duration: 0.55,
+          ease: "back.out(1.4)",
           overwrite: "auto",
         });
         gsap.to(keyObj.scale, {
-          x: targetScaleX,
-          y: targetScaleY,
-          z: targetScaleZ,
-          duration: 0.65,
+          x: base.scale.x,
+          y: base.scale.y,
+          z: base.scale.z,
+          duration: 0.55,
           ease: "power2.out",
           overwrite: "auto",
         });
@@ -458,12 +420,14 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
     gsap.set(kbd.position, heroState.position);
 
     // Section transitions
+    // Scroll trigger chain must match the actual DOM/scroll order:
+    // hero → skills → experience(about) → projects → interests → contact
     return [
       createSectionTimeline("#skills", "skills", "hero"),
-      createSectionTimeline("#interests", "interests", "skills"),
-      createSectionTimeline("#experience", "experience", "interests"),
+      createSectionTimeline("#experience", "experience", "skills"),
       createSectionTimeline("#projects", "projects", "experience", "top 70%"),
-      createSectionTimeline("#contact", "contact", "projects", "top 30%"),
+      createSectionTimeline("#interests", "interests", "projects"),
+      createSectionTimeline("#contact", "contact", "interests", "top 30%"),
     ].filter(Boolean) as gsap.core.Timeline[];
   };
 

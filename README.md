@@ -270,13 +270,6 @@ This portfolio is optimized for zero-configuration deployment on **Vercel**:
 
 ---
 
-## Open Source Attribution
+## License
 
-This portfolio incorporates and adapts components from an open-source MIT-licensed 3D portfolio project originally authored by Naresh Khatri. The underlying 3D keyboard scene foundation and visual concepts have been comprehensively customized, re-engineered, and extended with:
-
-- Custom 24-skill mapping, high-contrast local vector iconography, and revised Spline material textures.
-- Zero-latency Web Audio sound engine and tactile keycap GSAP depression tweens.
-- Pure monochrome black-and-white experience card design system.
-- Full identity, project architecture, telemetry, and portfolio data tailored specifically for Pranay Kumar Vonamala.
-
-The original foundation remains acknowledged in accordance with the [MIT License](LICENSE).
+This project is open-source and available under the [MIT License](LICENSE) © 2026 Pranay Kumar Vonamala.

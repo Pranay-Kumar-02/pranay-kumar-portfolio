@@ -29,7 +29,7 @@ export const INTERESTS: Interest[] = [
   },
   {
     id: "llms-rag",
-    title: "LLMs & RAG Systems",
+    title: "LLMs & RAG",
     subtitle: "Language & Retrieval",
     description: "Exploring grounded language systems, retrieval, agents, and model orchestration.",
     color: "#a855f7",
@@ -40,12 +40,9 @@ export const INTERESTS: Interest[] = [
       SkillNames.LANGGRAPH,
       SkillNames.OLLAMA,
       SkillNames.OPENROUTER,
-    ],
-    secondaryKeys: [
       SkillNames.FASTAPI,
-      SkillNames.GIT,
-      SkillNames.GITHUB,
     ],
+    secondaryKeys: [],
   },
   {
     id: "infosec",
@@ -55,15 +52,14 @@ export const INTERESTS: Interest[] = [
     color: "#22c55e",
     primaryKeys: [
       SkillNames.C,
+      SkillNames.PYTHON,
       SkillNames.LINUX,
       SkillNames.KALILINUX,
       SkillNames.GIT,
       SkillNames.GITHUB,
-    ],
-    secondaryKeys: [
-      SkillNames.PYTHON,
       SkillNames.DOCKER,
     ],
+    secondaryKeys: [],
   },
   {
     id: "open-source",
@@ -76,14 +72,13 @@ export const INTERESTS: Interest[] = [
       SkillNames.GITHUB,
       SkillNames.DOCKER,
       SkillNames.LINUX,
-    ],
-    secondaryKeys: [
       SkillNames.PYTHON,
       SkillNames.CPP,
       SkillNames.JAVASCRIPT,
       SkillNames.TYPESCRIPT,
       SkillNames.REACT,
     ],
+    secondaryKeys: [],
   },
   {
     id: "ai-agents",
@@ -116,10 +111,9 @@ export const INTERESTS: Interest[] = [
       SkillNames.REACT,
       SkillNames.HTML5,
       SkillNames.CSS3,
-    ],
-    secondaryKeys: [
       SkillNames.GIT,
       SkillNames.GITHUB,
     ],
+    secondaryKeys: [],
   },
 ];

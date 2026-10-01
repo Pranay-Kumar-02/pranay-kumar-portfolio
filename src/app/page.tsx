@@ -18,9 +18,9 @@ function MainPage() {
       <main className={cn("bg-slate-100 dark:bg-transparent canvas-overlay-mode")}>
         <HeroSection />
         <SkillsSection />
-        <InterestsSection />
         <ExperienceSection />
         <ProjectsSection />
+        <InterestsSection />
         <ContactSection />
       </main>
     </SmoothScroll>

@@ -75,17 +75,17 @@ export const STATES = {
   },
   interests: {
     desktop: {
-      scale: { x: 0.26, y: 0.26, z: 0.26 },
-      position: { x: 180, y: -35, z: 0 },
+      scale: { x: 0.22, y: 0.22, z: 0.22 },
+      position: { x: 380, y: -160, z: 0 },
       rotation: {
-        x: Math.PI / 16,
-        y: -Math.PI / 16,
+        x: Math.PI / 14,   // gentle forward tilt — keys face upward/toward viewer
+        y: -Math.PI / 20,  // very slight right-turn
         z: 0,
       },
     },
     mobile: {
-      scale: { x: 0.28, y: 0.28, z: 0.28 },
-      position: { x: 0, y: -25, z: 0 },
+      scale: { x: 0.25, y: 0.25, z: 0.25 },
+      position: { x: 0, y: -20, z: 0 },
       rotation: {
         x: Math.PI / 12,
         y: 0,

@@ -47,6 +47,7 @@
     "@splinetool/react-spline": "^4.0.0",
     "@splinetool/runtime": "^1.9.3",
     "@types/canvas-confetti": "^1.9.0",
+    "@types/three": "^0.186.0",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -69,6 +70,7 @@
     "socket.io-client": "^4.8.3",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
+    "three": "^0.186.1",
     "vaul": "^1.1.2",
     "zod": "^3.23.8"
   },
