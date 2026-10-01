@@ -129,7 +129,7 @@ function GitHubStarsButton({
     (e: React.MouseEvent<HTMLAnchorElement>) => {
       e.preventDefault();
       handleDisplayParticles();
-      setTimeout(() => window.open(repoUrl, '_blank'), 500);
+      setTimeout(() => window.open(repoUrl, '_blank', 'noopener,noreferrer'), 500);
     },
     [handleDisplayParticles, repoUrl],
   );

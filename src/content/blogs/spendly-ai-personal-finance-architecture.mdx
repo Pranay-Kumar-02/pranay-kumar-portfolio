@@ -1,0 +1,60 @@
+---
+title: "Architecting Spendly: Predictive Budgeting & Guarded LLMs"
+publishedAt: "2024-09-15"
+summary: "Engineering an AI personal finance platform with real-time Firestore sync, Python velocity analytics, and guarded LLM recommendations."
+author: "Pranay Kumar"
+tags: ["ai", "fastapi", "react", "fullstack", "predictive-analytics"]
+---
+
+# Architecting Spendly: Predictive Budgeting & Guarded LLMs
+
+Personal finance applications often suffer from two major extremes: they either act as static spreadsheets requiring endless manual categorization, or they integrate hallucination-prone AI models that offer irresponsible financial advice.
+
+When building **Spendly**, my goal was to solve both extremes by combining deterministic financial mathematics with strictly bounded LLM inference.
+
+## The System Architecture
+
+Spendly is divided into three synchronized execution tiers:
+
+1. **Reactive Client (React 18 + Tailwind + Recharts)**: Real-time balance charts, category breakdowns, and low-latency expense tracking.
+2. **FastAPI Microservice Engine**: Python computation core responsible for computing 30-day spending velocity, runway projections, and anomaly detection.
+3. **Guarded LLM Advisory Layer**: Structured context injection that feeds verified transaction numbers into bounded system prompts, preventing unbounded financial speculation.
+
+```
+[ User Interaction ] 
+        │
+        ▼
+[ React + Recharts Dashboard ] ──(Real-Time Sync)──► [ Google Firestore ]
+        │                                                    │
+        ▼                                                    ▼
+[ FastAPI Analytics Engine ] ◄─────────────────── [ Clean Transaction Ledger ]
+        │
+        ▼
+[ Guarded LLM Layer (OpenRouter) ] ──► [ Structured Risk & Budget Rationale ]
+```
+
+## Guarding the LLM Rationale
+
+One of the key engineering challenges was preventing model hallucinations. Rather than asking the LLM to calculate totals or forecast balances, all math is calculated deterministically in Python before inference:
+
+- **Runway Velocity**: Computed via rolling 7-day and 30-day exponential moving averages.
+- **Category Drift**: Flagged when discretionary spending exceeds 1.5 standard deviations from baseline.
+
+The LLM is only provided the pre-calculated outputs alongside strict instruction guards:
+
+```python
+SYSTEM_PROMPT = """
+You are Spendly AI, an analytical financial assistant.
+You do NOT calculate math; all metrics below have been verified by the backend engine.
+Provide constructive, objective advice based strictly on the provided telemetry.
+Never guarantee investment outcomes or provide risky speculative recommendations.
+"""
+```
+
+## Key Takeaways
+
+1. **Never delegate arithmetic to generative models**: Compute deterministically, explain conversationally.
+2. **Real-time optimistic UI**: Utilizing Firestore snapshot listeners gives users instant feedback when logging expenses on mobile or desktop.
+3. **Data visualization builds trust**: Showing visual spending trajectories alongside conversational advice makes insights tangible.
+
+Spendly is open-source on [GitHub](https://github.com/Pranay-Kumar-02/spendly) and deployed on [Vercel](https://spendly-eosin.vercel.app).

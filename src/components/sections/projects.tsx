@@ -73,21 +73,25 @@ const ProjectCard = ({ project }: { project: Project }) => {
               </div>
               <div className="shrink-0 flex items-center gap-4">
                 {project.github && project.github !== "#" && (
-                  <Link
+                  <a
                     href={project.github}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
                   >
                     Source
-                  </Link>
+                  </a>
                 )}
                 {project.live && project.live !== "#" && (
-                  <Link href={project.live} target="_blank">
-                    <button className="group flex items-center gap-2 bg-primary text-primary-foreground text-sm font-medium px-4 py-1.5 rounded-full hover:bg-primary/80 transition-colors">
-                      Visit
-                      <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </button>
-                  </Link>
+                  <a
+                    href={project.live}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group inline-flex items-center gap-2 bg-primary text-primary-foreground text-sm font-medium px-4 py-1.5 rounded-full hover:bg-primary/80 transition-colors"
+                  >
+                    Visit
+                    <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </a>
                 )}
               </div>
             </div>

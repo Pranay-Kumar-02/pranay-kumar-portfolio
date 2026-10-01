@@ -85,63 +85,70 @@ const HeroSection = () => {
                 </BlurIn>
               </div>
               <div className="mt-8 flex flex-col gap-3 w-fit">
-                <Link
-                  href="/Pranay_Kumar_Vonamala_Resume.pdf"
-                  target="_blank"
-                  download="Pranay_Kumar_Vonamala_Resume.pdf"
-                  className="flex-1"
-                >
-                  <BoxReveal delay={2} width="100%" >
-                    <Button className="flex items-center gap-2 w-full">
+                <BoxReveal delay={2} width="100%" >
+                  <Button asChild className="flex items-center gap-2 w-full">
+                    <a
+                      href="/Pranay_Kumar_Vonamala_Resume.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download="Pranay_Kumar_Vonamala_Resume.pdf"
+                    >
                       <File size={24} />
-                      <p>Resume</p>
-                    </Button>
-                  </BoxReveal>
-                </Link>
+                      <span>Resume</span>
+                    </a>
+                  </Button>
+                </BoxReveal>
                 <div className="md:self-start flex gap-3">
                   <Tooltip delayDuration={300}>
                     <TooltipTrigger asChild>
-                      <Link href={"#contact"}>
-                        <Button
-                          variant={"outline"}
-                          className="block w-full overflow-hidden"
-                        >
+                      <Button
+                        asChild
+                        variant={"outline"}
+                        className="block w-full overflow-hidden"
+                      >
+                        <Link href={"#contact"}>
                           Hire Me
-                        </Button>
-                      </Link>
+                        </Link>
+                      </Button>
                     </TooltipTrigger>
                     <TooltipContent side="bottom">
                       <p>Available for high-impact SWE & AI roles 🚀</p>
                     </TooltipContent>
                   </Tooltip>
                   <div className="flex items-center h-full gap-2">
-                    <Link
-                      href={config.social.leetcode}
-                      target="_blank"
-                      className="cursor-can-hover"
-                    >
-                      <Button variant={"outline"}>
+                    <Button asChild variant={"outline"}>
+                      <a
+                        href={config.social.leetcode}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="LeetCode Profile"
+                        className="cursor-can-hover"
+                      >
                         <SiLeetcode size={24} />
-                      </Button>
-                    </Link>
-                    <Link
-                      href={config.social.github}
-                      target="_blank"
-                      className="cursor-can-hover"
-                    >
-                      <Button variant={"outline"}>
+                      </a>
+                    </Button>
+                    <Button asChild variant={"outline"}>
+                      <a
+                        href={config.social.github}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="GitHub Profile"
+                        className="cursor-can-hover"
+                      >
                         <SiGithub size={24} />
-                      </Button>
-                    </Link>
-                    <Link
-                      href={config.social.linkedin}
-                      target="_blank"
-                      className="cursor-can-hover"
-                    >
-                      <Button variant={"outline"}>
+                      </a>
+                    </Button>
+                    <Button asChild variant={"outline"}>
+                      <a
+                        href={config.social.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="LinkedIn Profile"
+                        className="cursor-can-hover"
+                      >
                         <SiLinkedin size={24} />
-                      </Button>
-                    </Link>
+                      </a>
+                    </Button>
                   </div>
                 </div>
               </div>

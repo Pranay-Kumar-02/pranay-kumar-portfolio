@@ -28,6 +28,7 @@ const ContactSection = () => {
               Please contact me directly at{" "}
               <a
                 target="_blank"
+                rel="noopener noreferrer"
                 href={`mailto:${config.email}`}
                 className="text-gray-200 cursor-can-hover rounded-lg"
               >

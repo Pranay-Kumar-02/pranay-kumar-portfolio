@@ -1,0 +1,50 @@
+---
+title: "Agentic Systems with LangGraph, SQLite WAL & Local LLMs"
+publishedAt: "2024-07-10"
+summary: "Designing resilient state graphs with LangGraph, local open-weight LLMs via Ollama, and reliable session persistence using SQLite WAL mode."
+author: "Pranay Kumar"
+tags: ["ai-agents", "langgraph", "langchain", "rag", "ollama"]
+---
+
+# Agentic Systems with LangGraph, SQLite WAL & Local LLMs
+
+As Large Language Model applications evolve beyond simple prompt-response wrappers, **cyclic agent state machines** have become essential. In **SupportFlow AI**, I implemented an agentic customer support system designed around state graphs, local open-weight inference, and persistent session memory.
+
+## Why Cyclic State Graphs?
+
+Traditional linear chains (DAGs) fail when an agent encounters unexpected input or missing context. LangGraph allows building state machines with conditional loops:
+
+```
+[ User Query ] ──► [ Intent Classifier Node ]
+                            │
+               ┌────────────┴────────────┐
+               ▼                         ▼
+      [ Knowledge RAG Node ]    [ Escalation Node ]
+               │                         │
+               ▼                         │
+      [ Quality Check Gate ] ◄───────────┘
+         │            │
+      (Valid)     (Clarify)
+         │            │
+         ▼            └──────► [ Clarification Node ] ──┐
+     [ Output ]                                         │
+         ▲                                              │
+         └──────────────────────────────────────────────┘
+```
+
+If the generated answer does not satisfy confidence thresholds during the verification step, the graph conditionally loops back to formulate clarification questions rather than delivering hallucinated responses.
+
+## Local Inference with Ollama & SQLite WAL
+
+To ensure complete privacy and zero per-token cost during development:
+
+- **Local LLMs**: Powered by Ollama running Mistral and Llama 3 models locally.
+- **SQLite WAL Persistence**: Every state transition is written to an SQLite database with Write-Ahead Logging (WAL) enabled, allowing multi-threaded read concurrency while agents serialize conversation states.
+
+## Key Learnings
+
+1. **State boundaries must be strictly typed**: Using Pydantic models for graph state prevents runtime type degradation as messages traverse multiple nodes.
+2. **Deterministic routing reduces latency**: Simple regex and keyword classifiers should triage basic intents before invoking heavier LLM nodes.
+3. **Local LLMs are ready for agent routing**: Smaller 7B/8B models excel at constrained JSON classification when prompted with few-shot examples.
+
+Check out the code on [GitHub](https://github.com/Pranay-Kumar-02/supportflow-ai).

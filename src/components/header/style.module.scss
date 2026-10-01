@@ -29,7 +29,7 @@
       margin: 0px;
     }
 
-    a {
+    > a:first-child {
       text-decoration: none;
       color: hsl(var(--foreground));
       position: absolute;

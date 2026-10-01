@@ -3,8 +3,9 @@ import { getBlogPosts } from "@/lib/mdx";
 import BlogListClient from "./blog-list-client";
 
 export const metadata = {
-  title: "Blog | Portfolio",
-  description: "Thoughts, tutorials, and updates.",
+  title: "Engineering Blog | Pranay Kumar",
+  description:
+    "Technical write-ups, deep dives into AI agents, cybersecurity telemetry, and software engineering by Pranay Kumar.",
 };
 
 export default function BlogPage() {

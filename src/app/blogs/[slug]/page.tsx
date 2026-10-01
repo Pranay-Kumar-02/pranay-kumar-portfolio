@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, CalendarDays, Clock, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import RevealAnimation from "@/components/reveal-animations";
+import { config } from "@/data/config";
 
 export async function generateStaticParams() {
   const posts = getBlogPosts();
@@ -18,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const post = getBlogPost(slug);
   return {
-    title: `${post.metadata.title} | Portfolio`,
+    title: `${post.metadata.title} | ${config.author}`,
     description: post.metadata.summary,
   };
 }
@@ -41,13 +42,13 @@ function formatDate(dateStr: string) {
 const components = {
   h1: (props: any) => (
     <h1
-      className="font-display text-2xl md:text-3xl leading-[1.15] mt-14 mb-6 text-foreground"
+      className="font-display text-2xl md:text-3xl leading-[1.15] mt-14 mb-6 text-foreground tracking-tight"
       {...props}
     />
   ),
   h2: (props: any) => (
     <h2
-      className="font-display text-xl md:text-2xl leading-[1.2] mt-12 mb-4 text-foreground relative"
+      className="font-display text-xl md:text-2xl leading-[1.2] mt-12 mb-4 text-foreground relative tracking-tight"
       {...props}
     />
   ),
@@ -59,46 +60,48 @@ const components = {
   ),
   p: (props: any) => (
     <p
-      className="text-muted-foreground leading-[1.8] mb-7 text-[17px] font-sans"
+      className="text-muted-foreground leading-[1.8] mb-7 text-[16px] sm:text-[17px] font-sans"
       {...props}
     />
   ),
   ul: (props: any) => (
     <ul
-      className="mb-7 text-muted-foreground space-y-3 text-[17px] leading-[1.8] font-sans"
+      className="mb-7 text-muted-foreground space-y-3 text-[16px] sm:text-[17px] leading-[1.8] font-sans list-disc pl-6"
       {...props}
     />
   ),
   ol: (props: any) => (
     <ol
-      className="list-decimal mb-7 text-muted-foreground space-y-3 text-[17px] leading-[1.8] font-sans pl-5"
+      className="list-decimal mb-7 text-muted-foreground space-y-3 text-[16px] sm:text-[17px] leading-[1.8] font-sans pl-6"
       {...props}
     />
   ),
   li: (props: any) => (
-    <li className="pl-2 relative before:content-['–'] before:absolute before:-left-5 before:text-[hsl(20,100%,70%)] before:font-medium" {...props} />
+    <li className="pl-1" {...props} />
   ),
   blockquote: (props: any) => (
     <blockquote
-      className="border-l-2 border-[hsl(20,100%,70%)] pl-6 my-8 text-foreground/80 italic text-lg leading-relaxed font-sans"
+      className="border-l-2 border-sky-400 pl-6 my-8 text-foreground/90 italic text-base sm:text-lg leading-relaxed font-sans bg-card/20 py-3 rounded-r-lg"
       {...props}
     />
   ),
   code: (props: any) => (
     <code
-      className="bg-muted/50 text-[hsl(20,100%,65%)] px-1.5 py-0.5 rounded text-[15px] font-mono"
+      className="bg-muted/60 text-sky-300 px-1.5 py-0.5 rounded text-[14px] sm:text-[15px] font-mono border border-border/40"
       {...props}
     />
   ),
   pre: (props: any) => (
     <pre
-      className="bg-[hsl(222,84%,3%)] p-5 rounded-xl overflow-x-auto mb-8 border border-border/50 text-sm leading-relaxed"
+      className="bg-card/80 dark:bg-[#070b12] p-5 rounded-xl overflow-x-auto mb-8 border border-border/70 text-sm leading-relaxed font-mono shadow-md"
       {...props}
     />
   ),
   a: (props: any) => (
     <a
-      className="text-[hsl(20,100%,70%)] hover:text-[hsl(20,100%,80%)] underline decoration-[hsl(20,100%,70%)]/30 underline-offset-4 hover:decoration-[hsl(20,100%,70%)] transition-colors"
+      className="text-sky-400 hover:text-sky-300 underline decoration-sky-400/40 underline-offset-4 hover:decoration-sky-400 transition-colors"
+      target="_blank"
+      rel="noopener noreferrer"
       {...props}
     />
   ),
@@ -117,22 +120,22 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
   return (
     <div className="min-h-screen relative font-sans">
-      <ScrollProgress className="bg-gradient-to-r from-[hsl(20,100%,70%)] to-[hsl(30,100%,65%)]" />
+      <ScrollProgress className="bg-gradient-to-r from-sky-400 via-violet-400 to-pink-400" />
 
-      {/* Decorative background */}
+      {/* Decorative ambient background */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-[hsl(20,100%,70%)]/[0.03] blur-[100px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-sky-500/[0.04] blur-[100px]" />
       </div>
 
-      <div className="container mx-auto px-4 pt-32 pb-24 max-w-[720px]">
+      <div className="container mx-auto px-4 pt-32 pb-24 max-w-[760px]">
         {/* Back link */}
         <RevealAnimation>
           <Link
             href="/blogs"
-            className="inline-flex items-center text-muted-foreground hover:text-[hsl(20,100%,70%)] transition-colors mb-12 group text-sm"
+            className="inline-flex items-center text-muted-foreground hover:text-sky-400 transition-colors mb-12 group text-sm font-medium"
           >
             <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-            All posts
+            Back to all dispatches
           </Link>
         </RevealAnimation>
 
@@ -145,28 +148,28 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                 <Badge
                   key={tag}
                   variant="outline"
-                  className="border-[hsl(20,100%,70%)]/20 text-[hsl(20,100%,70%)] bg-[hsl(20,100%,70%)]/5 rounded-full px-3 text-xs"
+                  className="border-sky-500/25 text-sky-300 bg-sky-500/10 rounded-full px-3 text-xs"
                 >
-                  {tag}
+                  #{tag}
                 </Badge>
               ))}
             </div>
 
             {/* Title */}
-            <h1 className="font-display text-2xl md:text-4xl leading-[1.1] tracking-tight mb-8">
+            <h1 className="font-display text-2xl sm:text-3xl md:text-4xl leading-[1.15] tracking-tight mb-8 text-foreground">
               {post.metadata.title}
             </h1>
 
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground pb-8 border-b border-border/50">
-              {post.metadata.author && (
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-[hsl(20,100%,70%)]/10 flex items-center justify-center">
-                    <User className="w-3 h-3 text-[hsl(20,100%,70%)]" />
-                  </div>
-                  {post.metadata.author}
+              <div className="flex items-center gap-2">
+                <div className="size-6 rounded-full bg-sky-500/15 border border-sky-500/30 flex items-center justify-center">
+                  <User className="size-3 text-sky-400" />
                 </div>
-              )}
+                <span className="font-medium text-foreground">
+                  {post.metadata.author || config.author}
+                </span>
+              </div>
               <div className="flex items-center gap-1.5">
                 <CalendarDays className="w-3.5 h-3.5" />
                 {formatDate(post.metadata.publishedAt)}
@@ -186,16 +189,19 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
           </article>
         </RevealAnimation>
 
-        {/* Footer divider */}
+        {/* Footer divider & Back link */}
         <RevealAnimation delay={0.1}>
-          <div className="mt-20 pt-8 border-t border-border/50">
+          <div className="mt-20 pt-8 border-t border-border/50 flex items-center justify-between">
             <Link
               href="/blogs"
-              className="inline-flex items-center text-muted-foreground hover:text-[hsl(20,100%,70%)] transition-colors group text-sm"
+              className="inline-flex items-center text-muted-foreground hover:text-sky-400 transition-colors group text-sm font-medium"
             >
               <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-              Back to all posts
+              Back to all dispatches
             </Link>
+            <span className="text-xs text-muted-foreground font-mono">
+              Written by {config.fullName}
+            </span>
           </div>
         </RevealAnimation>
       </div>

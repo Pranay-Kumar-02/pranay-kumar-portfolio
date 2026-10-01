@@ -36,11 +36,11 @@ export default function ResumeView() {
             <ArrowLeft className="h-4 w-4" />
             Back to portfolio
           </Link>
-          <Button>
+          <Button asChild>
             <a
               href={RESUME_PATH}
               download
-              className="flex gap-2 text-sm transition-colors hover:text-foreground"
+              className="flex gap-2 text-sm transition-colors"
             >
               <Download className="h-4 w-4 transition-transform group-hover:translate-y-0.5" />
               Download PDF

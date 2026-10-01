@@ -1,0 +1,51 @@
+---
+title: "Sentinel AI: Concurrent Threat Intelligence & Explainable Triage"
+publishedAt: "2024-08-20"
+summary: "Engineering an asynchronous threat intelligence engine integrating VirusTotal v3 and WHOIS telemetry with explainable risk breakdown modules."
+author: "Pranay Kumar"
+tags: ["cybersecurity", "threat-intel", "python", "fastapi", "osint"]
+---
+
+# Sentinel AI: Concurrent Threat Intelligence & Explainable Triage
+
+In Security Operations Centers (SOCs), analysts face a critical bottleneck: **alert fatigue**. Every incoming security alert requires manually correlating domain registrations, VirusTotal reputation scores, autonomous system numbers (ASNs), and historical DNS records.
+
+I designed **Sentinel AI** to compress this multi-hour investigative workflow into sub-second concurrent telemetry analysis with Explainable AI triage.
+
+## Concurrent OSINT Gathering
+
+Sequential API calls to external security databases introduce unacceptable latency. Sentinel AI utilizes Python's `asyncio` and `httpx` to trigger parallel telemetry workers:
+
+- **VirusTotal v3 Endpoint**: Querying multi-engine detection ratios and behavioral sandbox reports.
+- **WHOIS & RDAP**: Extracting registrar creation dates, registrant privacy indicators, and domain age.
+- **DNS Telemetry**: Resolving active A, AAAA, MX, and TXT records to detect fast-flux infrastructure.
+
+```python
+async def investigate_indicator(ioc: str, ioc_type: IOCType) -> TelemetryReport:
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        vt_task = fetch_virustotal_report(client, ioc)
+        whois_task = query_whois_record(client, ioc)
+        dns_task = resolve_dns_records(ioc)
+
+        vt_res, whois_res, dns_res = await asyncio.gather(
+            vt_task, whois_task, dns_task, return_exceptions=True
+        )
+
+    return compile_ioc_verdict(vt_res, whois_res, dns_res)
+```
+
+## Explainable AI (XAI) Scoring
+
+Rather than presenting analysts with an opaque "Risk Score: 87/100", Sentinel AI uses an explainable heuristic attribution engine. Each risk modifier is tied to a specific evidence anchor:
+
+- `+35 PTS`: Domain registered less than 7 days ago.
+- `+40 PTS`: 5+ antivirus vendors flagged hash as malicious ransomware.
+- `+15 PTS`: Mismatched SSL/TLS certificate subject alternative names (SAN).
+
+By presenting the exact signals that contributed to the score, junior analysts can immediately validate findings without second-guessing black-box models.
+
+## Conclusion
+
+Modern cyber defense requires combining rapid asynchronous data aggregation with transparent, explainable triage. Sentinel AI proves that automating tier-1 triage saves valuable minutes during active incident response.
+
+Explore the source on [GitHub](https://github.com/Pranay-Kumar-02/sentinel-ai).

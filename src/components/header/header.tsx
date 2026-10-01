@@ -11,7 +11,6 @@ import FunnyThemeToggle from "../theme/funny-theme-toggle";
 import { Button } from "../ui/button";
 import { config } from "@/data/config";
 import OnlineUsers from "../realtime/online-users";
-import { SiGithub } from "react-icons/si";
 
 interface HeaderProps {
   loader?: boolean;
@@ -58,20 +57,6 @@ const Header = ({ loader }: HeaderProps) => {
 
         <FunnyThemeToggle className="w-6 h-6 mr-4 hidden md:flex" />
         {isHome && process.env.NEXT_PUBLIC_WS_URL && <OnlineUsers />}
-        {config.social.github && (
-          <motion.a
-            href={config.social.github}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="GitHub Profile"
-            title="GitHub Profile"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="cursor-can-hover flex items-center justify-center size-9 rounded-lg border border-black/20 dark:border-white/20 hover:border-black/50 dark:hover:border-white/50 hover:bg-secondary/40 text-foreground transition-all mr-4"
-          >
-            <SiGithub className="size-[18px]" />
-          </motion.a>
-        )}
         <Button
           variant={"ghost"}
           onClick={() => setIsActive(!isActive)}

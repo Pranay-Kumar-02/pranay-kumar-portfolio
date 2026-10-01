@@ -1,0 +1,63 @@
+---
+title: "Multimodal Dataset Engineering: Eliminating Caption Drift & Whisper Compute"
+publishedAt: "2024-06-02"
+summary: "Lessons from building Textora Engine: deterministic n-gram de-flickering, cryptographic SHA-256 data lineage, and caption-first video ingestion."
+author: "Pranay Kumar"
+tags: ["dataset-engineering", "speech-ai", "whisper", "data-lineage", "python"]
+---
+
+# Multimodal Dataset Engineering: Eliminating Caption Drift & Whisper Compute
+
+Training high-quality multimodal and speech AI systems requires immense volumes of conversational audio and video data. However, raw internet video sources contain significant noise: rolling subtitle duplicates, non-lexical annotations (`[Applause]`, `[Music]`), transliterated language drift, and exorbitant Whisper transcription GPU costs.
+
+In building **Textora Engine**, I engineered a 4-layer dataset processing pipeline designed for reproducibility, efficiency, and verifiable data provenance.
+
+## 1. Caption-First Ingestion Architecture
+
+Running automatic speech recognition (ASR) like OpenAI Whisper on every video is computationally wasteful when human-verified captions already exist.
+
+Textora implements a **caption-first dual-ingestion** strategy:
+1. Inspect video streams for embedded closed captions (SRT/VTT).
+2. If verified native captions exist, bypass GPU inference entirely, achieving a ~92% compute reduction.
+3. Fall back to local `faster-whisper` running on CTranslate2 with dynamic beam sizing only when captions are absent or incomplete.
+
+## 2. Deterministic N-Gram De-Flickering
+
+Live-streamed and rolling closed captions frequently repeat words across consecutive subtitle chunks:
+
+```
+Chunk 1: "Today we are"
+Chunk 2: "we are going to"
+Chunk 3: "going to demonstrate"
+```
+
+A naive concatenation produces: *"Today we are we are going to going to demonstrate"*. 
+
+To solve this deterministically, Textora uses a sliding-window suffix-prefix overlap algorithm:
+
+```python
+def merge_rolling_segments(prev_text: str, next_text: str, min_overlap: int = 2) -> str:
+    prev_words = prev_text.split()
+    next_words = next_text.split()
+    
+    max_k = min(len(prev_words), len(next_words))
+    for k in range(max_k, min_overlap - 1, -1):
+        if prev_words[-k:] == next_words[:k]:
+            return " ".join(prev_words + next_words[k:])
+            
+    return f"{prev_text} {next_text}"
+```
+
+## 3. Cryptographic Data Lineage (Provenance)
+
+For training datasets to be auditable, researchers must know exactly how each sentence was generated. Every corpus export includes a cryptographic manifest containing:
+- Raw video source URL and timestamp coordinates.
+- Source audio chunk SHA-256 hash.
+- Transcription methodology (native caption vs. faster-whisper model version).
+- Deterministic normalizer version.
+
+## Summary
+
+Data engineering for AI is not just about quantity; it is about determinism, provenance, and compute efficiency. Textora Engine turns messy video archives into production-ready datasets with zero guesswork.
+
+Check out the project repository on [GitHub](https://github.com/Pranay-Kumar-02/textora-engine).
