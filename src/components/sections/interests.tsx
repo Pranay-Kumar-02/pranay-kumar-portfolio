@@ -60,21 +60,21 @@ export const InterestsSection = () => {
           initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="w-full max-w-xl flex flex-col items-start mb-8 md:mb-12 pointer-events-auto relative z-20"
+          className="w-full max-w-md lg:max-w-lg flex flex-col items-start mb-6 md:mb-10 pointer-events-auto relative z-20"
         >
           {/* Elite Kicker Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-sky-500/25 bg-sky-500/10 backdrop-blur-xl mb-4 shadow-[0_0_20px_-3px_rgba(56,189,248,0.25)]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-sky-500/25 bg-sky-500/10 backdrop-blur-xl mb-3 shadow-[0_0_20px_-3px_rgba(56,189,248,0.25)]">
             <span className="relative flex size-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
               <span className="relative inline-flex rounded-full size-2 bg-sky-500" />
             </span>
-            <span className="text-[11px] sm:text-xs font-mono font-semibold uppercase tracking-wider text-sky-300">
+            <span className="text-[10px] sm:text-[11px] font-mono font-semibold uppercase tracking-wider text-sky-300">
               Interactive 3D Hardware Telemetry
             </span>
           </div>
 
           {/* Section Heading with High-End Gradient */}
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground flex flex-wrap items-center gap-3">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground flex flex-wrap items-center gap-2.5">
             <span>Technical</span>
             <span className="bg-gradient-to-r from-sky-400 via-violet-400 to-pink-400 bg-clip-text text-transparent">
               Interests & Focus
@@ -82,8 +82,8 @@ export const InterestsSection = () => {
           </h2>
 
           {/* Subtitle */}
-          <p className="mt-3 max-w-2xl text-sm sm:text-base text-muted-foreground leading-relaxed">
-            The core engineering disciplines and architectural domains I build around. Hover or click any card to elevate its associated keycaps in real time on the 3D hardware keyboard.
+          <p className="mt-2.5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            Core engineering disciplines and system architectures. Hover or click any card to elevate its associated keycaps in real time on the 3D keyboard.
           </p>
         </motion.div>
 

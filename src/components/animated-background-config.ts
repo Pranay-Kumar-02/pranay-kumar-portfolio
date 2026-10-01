@@ -75,8 +75,8 @@ export const STATES = {
   },
   interests: {
     desktop: {
-      scale: { x: 0.22, y: 0.22, z: 0.22 },
-      position: { x: 380, y: -160, z: 0 },
+      scale: { x: 0.20, y: 0.20, z: 0.20 },
+      position: { x: 420, y: -260, z: 0 },
       rotation: {
         x: Math.PI / 14,   // gentle forward tilt — keys face upward/toward viewer
         y: -Math.PI / 20,  // very slight right-turn
