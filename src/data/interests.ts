@@ -29,7 +29,7 @@ export const INTERESTS: Interest[] = [
   },
   {
     id: "llms-rag",
-    title: "LLMs & RAG",
+    title: "LLMs & RAG Systems",
     subtitle: "Language & Retrieval",
     description: "Exploring grounded language systems, retrieval, agents, and model orchestration.",
     color: "#a855f7",
@@ -82,7 +82,7 @@ export const INTERESTS: Interest[] = [
   },
   {
     id: "ai-agents",
-    title: "AI Agents / Developer Tools",
+    title: "AI Agents & Developer Tools",
     subtitle: "Autonomous Workflows",
     description: "Exploring tool-calling agents, local models, automation, and developer workflows.",
     color: "#eab308",

@@ -75,9 +75,32 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <link id="controlled-favicon" rel="icon" type="image/svg+xml" href="/favicon.svg" />
         {/* The Spline runtime lazy-loads its wasm from unpkg; warm the
             connection early so the 3D scene starts faster. */}
         <link rel="preconnect" href="https://unpkg.com" crossOrigin="anonymous" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Person",
+              name: config.fullName,
+              alternateName: config.author,
+              url: config.site,
+              jobTitle: "AI & Software Systems Engineer",
+              alumniOf: {
+                "@type": "CollegeOrUniversity",
+                name: "Vellore Institute of Technology (VIT)",
+              },
+              sameAs: [
+                config.social.github,
+                config.social.linkedin,
+                config.social.leetcode,
+              ],
+            }),
+          }}
+        />
         {process.env.UMAMI_SITE_ID && (
           <Script
             defer

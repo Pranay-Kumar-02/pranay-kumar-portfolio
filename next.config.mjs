@@ -4,6 +4,20 @@ const nextConfig = {
   poweredByHeader: false,
   cacheComponents: true,
   allowedDevOrigins: ['127.0.0.1', 'localhost'],
+  async redirects() {
+    return [
+      {
+        source: '/blog',
+        destination: '/blogs',
+        permanent: true,
+      },
+      {
+        source: '/blog/:slug',
+        destination: '/blogs/:slug',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

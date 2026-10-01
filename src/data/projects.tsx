@@ -33,7 +33,7 @@ const ProjectsLinks = ({ live, repo }: { live?: string; repo?: string }) => {
       {live && live !== "#" && (
         <Link
           className="font-mono underline flex gap-2"
-          rel="noopener"
+          rel="noopener noreferrer"
           target="_blank"
           href={live}
         >
@@ -46,7 +46,7 @@ const ProjectsLinks = ({ live, repo }: { live?: string; repo?: string }) => {
       {repo && repo !== "#" && (
         <Link
           className="font-mono underline flex gap-2"
-          rel="noopener"
+          rel="noopener noreferrer"
           target="_blank"
           href={repo}
         >
