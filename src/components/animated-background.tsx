@@ -519,6 +519,71 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
     return { start, stop };
   };
 
+  const [sceneReady, setSceneReady] = useState(false);
+
+  const ensureKeycapsVisible = (app?: Application) => {
+    const targetApp = app || splineApp;
+    if (!targetApp) return false;
+
+    try {
+      const allObjects = targetApp.getAllObjects();
+      const keycaps = allObjects.filter((obj) => obj.name === "keycap");
+      const mobileKeyCaps = allObjects.filter((obj) => obj.name === "keycap-mobile");
+      const desktopKeyCaps = allObjects.filter((obj) => obj.name === "keycap-desktop");
+
+      if (keycaps.length === 0) return false;
+
+      keycaps.forEach((k) => { k.visible = true; });
+      if (isMobile) {
+        mobileKeyCaps.forEach((k) => { k.visible = true; });
+        desktopKeyCaps.forEach((k) => { k.visible = false; });
+      } else {
+        desktopKeyCaps.forEach((k) => { k.visible = true; });
+        mobileKeyCaps.forEach((k) => { k.visible = false; });
+      }
+
+      const kbd = targetApp.findObjectByName("keyboard");
+      if (kbd) kbd.visible = true;
+
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // Poll until keyboard and keycap objects are fully parsed and ready in the Spline scene
+  useEffect(() => {
+    if (!splineApp) return;
+
+    let cancelled = false;
+    let timer: NodeJS.Timeout;
+    let attempts = 0;
+
+    const checkReady = () => {
+      if (cancelled) return;
+      attempts++;
+      const kbd = splineApp.findObjectByName("keyboard");
+      const keycaps = splineApp.getAllObjects().filter((obj) => obj.name === "keycap");
+
+      if (kbd && keycaps.length >= 24) {
+        ensureKeycapsVisible(splineApp);
+        setSceneReady(true);
+      } else if (attempts < 100) {
+        timer = setTimeout(checkReady, 50);
+      } else {
+        ensureKeycapsVisible(splineApp);
+        setSceneReady(true);
+      }
+    };
+
+    checkReady();
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [splineApp, isMobile]);
+
   const updateKeyboardTransform = async () => {
     if (!splineApp) return;
     const kbd = splineApp.findObjectByName("keyboard");
@@ -538,57 +603,53 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
       }
     );
 
+    ensureKeycapsVisible(splineApp);
+
     const allObjects = splineApp.getAllObjects();
     const keycaps = allObjects.filter((obj) => obj.name === "keycap");
 
-    if (isMobile) {
-      const mobileKeyCaps = allObjects.filter((obj) => obj.name === "keycap-mobile");
-      mobileKeyCaps.forEach((keycap) => { keycap.visible = true; });
-    } else {
-      const desktopKeyCaps = allObjects.filter((obj) => obj.name === "keycap-desktop");
-      desktopKeyCaps.forEach((keycap) => { keycap.visible = true; });
-    }
-
-    keycaps.forEach((keycap) => { keycap.visible = true; });
-
     // Smooth wave arrival with natural deceleration and zero jitter
-    gsap.fromTo(
-      keycaps.map((k) => k.position),
-      { y: 45 },
-      {
-        y: 0,
-        duration: 0.65,
-        stagger: {
-          amount: 0.25,
-          from: "start",
-          ease: "power2.inOut",
-        },
-        ease: "power3.out",
-      }
-    );
+    if (keycaps.length > 0) {
+      gsap.fromTo(
+        keycaps.map((k) => k.position),
+        { y: 45 },
+        {
+          y: 0,
+          duration: 0.65,
+          stagger: {
+            amount: 0.25,
+            from: "start",
+            ease: "power2.inOut",
+          },
+          ease: "power3.out",
+        }
+      );
+    }
   };
 
   // --- Effects ---
 
-  // Initialize GSAP and Spline interactions
+  // Initialize GSAP and Spline interactions once scene is ready
   useEffect(() => {
-    if (!splineApp) return;
+    if (!splineApp || !sceneReady) return;
+    ensureKeycapsVisible(splineApp);
     const cleanupInteractions = handleSplineInteractions();
     const timelines = setupScrollAnimations();
     bongoAnimationRef.current = getBongoAnimation();
     keycapAnimationsRef.current = getKeycapsAnimation();
+
+    ScrollTrigger.refresh();
+
     return () => {
       cleanupInteractions?.();
       bongoAnimationRef.current?.stop();
       keycapAnimationsRef.current?.stop();
-      // Kill the section ScrollTriggers so they don't orphan when the scene
-      // unmounts (e.g. toggling reduced motion) and fire on the disposed app.
       timelines.forEach((tl) => {
         tl.scrollTrigger?.kill();
         tl.kill();
       });
     };
-  }, [splineApp, isMobile]);
+  }, [splineApp, sceneReady, isMobile]);
 
 
 
@@ -636,6 +697,7 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
     }
 
     const manageAnimations = async () => {
+      ensureKeycapsVisible(splineApp);
       // Handle Rotate/Teardown Tweens
       if (activeSection === "hero") {
         rotateKeyboard?.restart();
@@ -681,20 +743,20 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
     };
   }, [activeSection, splineApp]);
 
-  // Reveal keyboard on load/route change
+  // Reveal keyboard on load/route change once scene is ready
   useEffect(() => {
-    // Rebuild the URL from the current pathname so the hash is always *replaced*
-    // rather than appended. Using router.push("/" + hash) stacked fragments on
-    // refresh (e.g. "/#skills#skills#skills") because the existing hash in the
-    // address bar was never stripped first. replaceState also avoids polluting
-    // browser history with an entry per scrolled-through section.
     const hash = activeSection === "hero" ? "" : `#${activeSection}`;
     const url = window.location.pathname + window.location.search + hash;
     window.history.replaceState(window.history.state, "", url);
 
-    if (!splineApp || isLoading || keyboardRevealed) return;
-    updateKeyboardTransform();
-  }, [splineApp, isLoading, activeSection]);
+    if (!splineApp || !sceneReady || isLoading) return;
+
+    ensureKeycapsVisible(splineApp);
+
+    if (!keyboardRevealed) {
+      updateKeyboardTransform();
+    }
+  }, [splineApp, sceneReady, isLoading, activeSection, keyboardRevealed]);
 
   // Cap the renderer's pixel ratio once the scene is ready, and clean up the
   // resize listener on unmount / DPR change (previously added in onLoad and
@@ -704,19 +766,28 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
     return capSplinePixelRatio(splineApp, maxDpr);
   }, [splineApp, maxDpr]);
 
-  // Pause the entire WebGL render loop (and the keyboard's infinite tweens /
-  // bongo-cat interval, which are only visible through it) while the tab is
-  // hidden. Spline keeps rendering at full tilt in a background tab otherwise —
-  // a pointless, continuous GPU/battery drain.
+  // Handle tab visibility and window focus: restore render loop and keycaps
   useEffect(() => {
     if (!splineApp) return;
     const onVisibility = () => {
-      if (document.hidden) splineApp.stop();
-      else splineApp.play();
+      if (document.hidden) {
+        splineApp.stop();
+      } else {
+        splineApp.play();
+        ensureKeycapsVisible(splineApp);
+      }
+    };
+    const onFocus = () => {
+      splineApp.play();
+      ensureKeycapsVisible(splineApp);
     };
     document.addEventListener("visibilitychange", onVisibility);
-    return () => document.removeEventListener("visibilitychange", onVisibility);
-  }, [splineApp]);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [splineApp, isMobile]);
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -725,6 +796,7 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
         ref={splineContainer}
         onLoad={(app: Application) => {
           setSplineApp(app);
+          ensureKeycapsVisible(app);
           if (typeof window !== "undefined") {
             (window as unknown as { __splineApp: Application }).__splineApp = app;
             (window as unknown as { __SKILLS: typeof SKILLS }).__SKILLS = SKILLS;

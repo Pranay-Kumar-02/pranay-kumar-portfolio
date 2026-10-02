@@ -57,10 +57,13 @@ function Preloader({ children, disabled = false }: PreloaderProps) {
   const loadingTween = useRef<gsap.core.Tween>(null);
   const completionTimeout = useRef<NodeJS.Timeout | null>(null);
 
+  const hasCompletedInitialLoad = useRef(false);
+
   // The splash exists to mask initial asset loading and provide the cinematic entrance.
   const { disable3D, ready: perfReady } = usePerfProfile();
 
   const bypassLoading = () => {
+    hasCompletedInitialLoad.current = true;
     if (completionTimeout.current) clearTimeout(completionTimeout.current);
     loadingTween.current?.kill();
     setLoadingPercent(100);
@@ -75,7 +78,13 @@ function Preloader({ children, disabled = false }: PreloaderProps) {
   const loadingPercentRef = useRef<{ value: number }>({ value: 0 });
 
   useEffect(() => {
-    if (skip) return;
+    if (skip || hasCompletedInitialLoad.current) {
+      if (hasCompletedInitialLoad.current) {
+        setIsLoading(false);
+        setLoadingPercent(100);
+      }
+      return;
+    }
 
     // Smooth continuous cinematic progression 0% -> 100%
     loadingTween.current = gsap.to(loadingPercentRef.current, {
@@ -86,6 +95,7 @@ function Preloader({ children, disabled = false }: PreloaderProps) {
         setLoadingPercent(loadingPercentRef.current.value);
       },
       onComplete: () => {
+        hasCompletedInitialLoad.current = true;
         setLoadingPercent(100);
         // Brief intentional pause at 100% so the user registers full completion
         completionTimeout.current = setTimeout(() => {
