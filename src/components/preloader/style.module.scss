@@ -1,30 +1,140 @@
 .introduction {
   height: 100dvh;
   width: 100dvw;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  padding-inline: 60px;
-  padding-bottom: 30px;
   position: fixed;
-  z-index: 99;
-  // TODO: Add a better color instead of just the background to make it pop more
+  top: 0;
+  left: 0;
+  z-index: 9999;
   background-color: hsl(var(--background));
+  overflow: hidden;
+  pointer-events: all;
+
   svg {
     position: absolute;
     top: 0;
+    left: 0;
     width: 100%;
     height: calc(100% + 300px);
+    pointer-events: none;
+    z-index: 1;
     path {
       fill: hsl(var(--background));
     }
   }
-  p {
-    display: flex;
-    color: hsl(var(--foreground));
-    font-size: 72px;
-    align-items: center;
-    position: absolute;
-    z-index: 1;
+}
+
+.messageContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 2;
+  pointer-events: none;
+  padding: 0 1.5rem;
+}
+
+.messageInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  max-width: 620px;
+}
+
+.messageText {
+  color: #f1f5f9;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  font-weight: 450;
+  letter-spacing: -0.015em;
+  margin: 0 0 1.5rem 0;
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  @media (min-width: 640px) {
+    font-size: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    font-size: 1.35rem;
+  }
+}
+
+.progressBarTrack {
+  width: 100%;
+  max-width: 320px;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+
+  @media (min-width: 640px) {
+    max-width: 380px;
+    height: 3.5px;
+  }
+}
+
+.progressBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8 0%, #60a5fa 100%);
+  border-radius: 9999px;
+  transition: width 0.04s linear;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.6);
+}
+
+.percentageContainer {
+  position: absolute;
+  bottom: 28px;
+  right: 28px;
+  display: flex;
+  align-items: baseline;
+  z-index: 2;
+  pointer-events: none;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  color: hsl(var(--foreground));
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+
+  @media (min-width: 640px) {
+    bottom: 36px;
+    right: 48px;
+  }
+  @media (min-width: 1024px) {
+    bottom: 44px;
+    right: 64px;
+  }
+}
+
+.percentageNumber {
+  font-size: 3.5rem;
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  line-height: 1;
+
+  @media (min-width: 640px) {
+    font-size: 4.75rem;
+  }
+  @media (min-width: 1024px) {
+    font-size: 5.5rem;
+  }
+}
+
+.percentageSymbol {
+  font-size: 1.75rem;
+  font-weight: 300;
+  margin-left: 4px;
+  opacity: 0.7;
+
+  @media (min-width: 640px) {
+    font-size: 2.25rem;
+    margin-left: 6px;
   }
 }

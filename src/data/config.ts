@@ -41,10 +41,11 @@ const config = {
     return this.site + "/assets/seo/og-image.png";
   },
   social: {
-    twitter: "https://github.com/Pranay-Kumar-02",
+    instagram: "https://www.instagram.com/_pranayyyy_/",
     linkedin: "https://www.linkedin.com/in/pranay-kumar-vonamala/",
     github: "https://github.com/Pranay-Kumar-02",
     leetcode: "https://leetcode.com/u/Pranayyy_/",
+    twitter: "https://github.com/Pranay-Kumar-02",
   },
 };
 export { config };

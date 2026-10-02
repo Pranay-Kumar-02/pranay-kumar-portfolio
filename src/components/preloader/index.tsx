@@ -38,7 +38,11 @@ export const usePreloader = () => {
   }
   return context;
 };
-const LOADING_TIME = 2.5;
+
+// 4.8 seconds gives the visitor approximately 2–3 extra seconds to comfortably read
+// "Initializing Pranay… please act like the loading was worth it." without feeling slow.
+const LOADING_TIME = 4.8;
+
 function Preloader({ children, disabled = false }: PreloaderProps) {
   const pathname = usePathname();
   // Skip the loading splash for the résumé and blog routes (and anywhere it's disabled).
@@ -51,15 +55,14 @@ function Preloader({ children, disabled = false }: PreloaderProps) {
   const [isLoading, setIsLoading] = useState(!skip);
   const [loadingPercent, setLoadingPercent] = useState(skip ? 100 : 0);
   const loadingTween = useRef<gsap.core.Tween>(null);
+  const completionTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // The splash exists only to mask the Spline 3D scene loading. On low-end /
-  // reduced-motion devices that scene is never loaded, so its onLoad (which
-  // normally dismisses the splash) never fires — bypass immediately instead of
-  // leaving the page stuck behind the loader.
+  // The splash exists to mask initial asset loading and provide the cinematic entrance.
   const { disable3D, ready: perfReady } = usePerfProfile();
 
   const bypassLoading = () => {
-    loadingTween.current?.progress(0.99).kill();
+    if (completionTimeout.current) clearTimeout(completionTimeout.current);
+    loadingTween.current?.kill();
     setLoadingPercent(100);
     setIsLoading(false);
   };
@@ -68,22 +71,32 @@ function Preloader({ children, disabled = false }: PreloaderProps) {
     if (perfReady && disable3D) bypassLoading();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [perfReady, disable3D]);
+
   const loadingPercentRef = useRef<{ value: number }>({ value: 0 });
+
   useEffect(() => {
     if (skip) return;
+
+    // Smooth continuous cinematic progression 0% -> 100%
     loadingTween.current = gsap.to(loadingPercentRef.current, {
       value: 100,
       duration: LOADING_TIME,
-      ease: "slow(0.7,0.7,false)",
+      ease: "power1.inOut",
       onUpdate: () => {
         setLoadingPercent(loadingPercentRef.current.value);
       },
       onComplete: () => {
-        setIsLoading(false);
+        setLoadingPercent(100);
+        // Brief intentional pause at 100% so the user registers full completion
+        completionTimeout.current = setTimeout(() => {
+          setIsLoading(false);
+        }, 180);
       },
     });
+
     return () => {
       loadingTween.current?.kill();
+      if (completionTimeout.current) clearTimeout(completionTimeout.current);
     };
   }, [skip]);
 

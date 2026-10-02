@@ -11,14 +11,75 @@ let isAudioInitialized = false;
 let fallbackPressAudio: HTMLAudioElement | null = null;
 let fallbackReleaseAudio: HTMLAudioElement | null = null;
 
+const GESTURE_EVENTS = [
+  "pointerdown",
+  "mousedown",
+  "click",
+  "touchstart",
+  "touchend",
+  "keydown",
+] as const;
+
+function removeUnlockListeners() {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  GESTURE_EVENTS.forEach((evt) => {
+    window.removeEventListener(evt, handleFirstUserGesture, true);
+    document.removeEventListener(evt, handleFirstUserGesture, true);
+  });
+}
+
+function handleFirstUserGesture() {
+  if (!sharedAudioCtx && typeof window !== "undefined") {
+    const AudioCtxClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext;
+    if (AudioCtxClass) {
+      sharedAudioCtx = new AudioCtxClass({ latencyHint: "interactive" });
+    }
+  }
+
+  if (sharedAudioCtx) {
+    if (sharedAudioCtx.state === "suspended") {
+      sharedAudioCtx
+        .resume()
+        .then(() => {
+          if (sharedAudioCtx?.state === "running") {
+            // Prime the hardware pipeline with an inaudible 1-sample buffer
+            try {
+              const silent = sharedAudioCtx.createBuffer(1, 1, 22050);
+              const src = sharedAudioCtx.createBufferSource();
+              src.buffer = silent;
+              src.connect(sharedAudioCtx.destination);
+              src.start(0);
+            } catch {}
+
+            // Warm up fallbacks
+            if (fallbackPressAudio) fallbackPressAudio.load();
+            if (fallbackReleaseAudio) fallbackReleaseAudio.load();
+
+            removeUnlockListeners();
+          }
+        })
+        .catch(() => {});
+    } else if (sharedAudioCtx.state === "running") {
+      removeUnlockListeners();
+    }
+  }
+}
+
 function initAudioEngine() {
   if (typeof window === "undefined" || isAudioInitialized) return;
   isAudioInitialized = true;
 
   try {
-    const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const AudioCtxClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext;
     if (AudioCtxClass) {
       sharedAudioCtx = new AudioCtxClass({ latencyHint: "interactive" });
+      (window as unknown as { __sharedAudioCtx?: AudioContext }).__sharedAudioCtx = sharedAudioCtx;
     }
 
     // Prepare fallback HTML5 audio with preloading
@@ -30,7 +91,7 @@ function initAudioEngine() {
     fallbackReleaseAudio.preload = "auto";
     fallbackReleaseAudio.volume = 0.35;
 
-    // Fetch and decode Web Audio buffers in parallel
+    // Fetch and decode Web Audio buffers in parallel immediately
     const preloadBuffer = async (url: string) => {
       try {
         const res = await fetch(url);
@@ -56,44 +117,29 @@ function initAudioEngine() {
       confettiAudioBuffer = buf;
     });
 
-    // Automatically unlock the AudioContext on ANY early user gesture
-    const unlock = () => {
-      if (sharedAudioCtx && sharedAudioCtx.state === "suspended") {
-        sharedAudioCtx.resume().catch(() => {});
-      }
-      // Also warm up fallback audio
-      if (fallbackPressAudio) {
-        fallbackPressAudio.load();
-      }
-      if (fallbackReleaseAudio) {
-        fallbackReleaseAudio.load();
-      }
-      window.removeEventListener("pointerdown", unlock);
-      window.removeEventListener("keydown", unlock);
-      window.removeEventListener("touchstart", unlock);
-      window.removeEventListener("wheel", unlock);
-    };
-
-    window.addEventListener("pointerdown", unlock, { passive: true, once: true });
-    window.addEventListener("keydown", unlock, { passive: true, once: true });
-    window.addEventListener("touchstart", unlock, { passive: true, once: true });
-    window.addEventListener("wheel", unlock, { passive: true, once: true });
+    // Attach unlock listeners on both window and document with capture: true
+    // strictly using legitimate user activation events (NO wheel or mousemove)
+    GESTURE_EVENTS.forEach((evt) => {
+      window.addEventListener(evt, handleFirstUserGesture, {
+        capture: true,
+        passive: true,
+      });
+      document.addEventListener(evt, handleFirstUserGesture, {
+        capture: true,
+        passive: true,
+      });
+    });
   } catch (e) {
     console.warn("[useSounds] Failed to initialize audio engine:", e);
   }
 }
 
-// Auto-initialize as soon as code loads in browser
+// Auto-initialize immediately in browser
 if (typeof window !== "undefined") {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initAudioEngine, { once: true });
-  } else {
-    initAudioEngine();
-  }
+  initAudioEngine();
 }
 
 export const useSounds = () => {
-  // Ensure engine is active
   if (!isAudioInitialized && typeof window !== "undefined") {
     initAudioEngine();
   }
@@ -105,37 +151,55 @@ export const useSounds = () => {
     return sharedAudioCtx;
   }, []);
 
-  const playBufferImmediate = useCallback((buffer: AudioBuffer | null, fallback: HTMLAudioElement | null, vol = 0.45, baseDetune = 0) => {
-    try {
-      const ctx = getContext();
-      if (ctx && buffer && ctx.state === "running") {
-        const source = ctx.createBufferSource();
-        source.buffer = buffer;
-        source.detune.value = baseDetune + (Math.random() * 120 - 60);
+  const playBufferImmediate = useCallback(
+    (
+      buffer: AudioBuffer | null,
+      fallback: HTMLAudioElement | null,
+      vol = 0.48,
+      baseDetune = 0
+    ) => {
+      try {
+        const ctx = sharedAudioCtx || getContext();
+        if (ctx && ctx.state !== "closed") {
+          if (ctx.state === "suspended") {
+            ctx.resume().catch(() => {});
+          }
 
-        const gainNode = ctx.createGain();
-        gainNode.gain.value = vol;
+          if (buffer) {
+            const source = ctx.createBufferSource();
+            source.buffer = buffer;
+            source.detune.value = baseDetune + (Math.random() * 120 - 60);
 
-        source.connect(gainNode);
-        gainNode.connect(ctx.destination);
-        source.start(0);
-        return;
-      }
+            const gainNode = ctx.createGain();
+            gainNode.gain.value = vol;
 
-      // If Web Audio buffer is not yet decoded or context still resuming, fire zero-latency clone of fallback
-      if (fallback) {
-        const clone = fallback.cloneNode() as HTMLAudioElement;
-        clone.volume = vol;
-        clone.play().catch(() => {});
+            source.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            source.start(0);
+
+            if (typeof window !== "undefined") {
+              const w = window as unknown as {
+                __soundHistory?: Array<{ time: number; state: string }>;
+              };
+              w.__soundHistory = w.__soundHistory || [];
+              w.__soundHistory.push({ time: Date.now(), state: ctx.state });
+            }
+            return;
+          }
+        }
+
+        // Fallback for HTML5 audio if Web Audio buffer isn't decoded yet
+        if (ctx && ctx.state === "running" && fallback) {
+          const clone = fallback.cloneNode() as HTMLAudioElement;
+          clone.volume = vol;
+          clone.play().catch(() => {});
+        }
+      } catch {
+        // Ignore audio playback errors
       }
-    } catch {
-      // Fallback if needed
-      if (fallback) {
-        fallback.currentTime = 0;
-        fallback.play().catch(() => {});
-      }
-    }
-  }, [getContext]);
+    },
+    [getContext]
+  );
 
   const playPressSound = useCallback(() => {
     playBufferImmediate(pressAudioBuffer, fallbackPressAudio, 0.48);
@@ -145,32 +209,38 @@ export const useSounds = () => {
     playBufferImmediate(releaseAudioBuffer, fallbackReleaseAudio, 0.32);
   }, [playBufferImmediate]);
 
-  const playTone = useCallback((startFreq: number, endFreq: number, duration: number, vol: number) => {
-    try {
-      const ctx = getContext();
-      if (!ctx || ctx.state !== "running") return;
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
+  const playTone = useCallback(
+    (startFreq: number, endFreq: number, duration: number, vol: number) => {
+      try {
+        const ctx = getContext();
+        if (!ctx || ctx.state !== "running") return;
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
 
-      oscillator.type = "sine";
-      const startTime = ctx.currentTime;
+        oscillator.type = "sine";
+        const startTime = ctx.currentTime;
 
-      oscillator.frequency.setValueAtTime(startFreq, startTime);
-      oscillator.frequency.exponentialRampToValueAtTime(endFreq, startTime + duration);
+        oscillator.frequency.setValueAtTime(startFreq, startTime);
+        oscillator.frequency.exponentialRampToValueAtTime(
+          endFreq,
+          startTime + duration
+        );
 
-      gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(vol, startTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(vol, startTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
 
-      oscillator.start(startTime);
-      oscillator.stop(startTime + duration);
-    } catch (error) {
-      console.error("Failed to play tone:", error);
-    }
-  }, [getContext]);
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+      } catch (error) {
+        console.error("Failed to play tone:", error);
+      }
+    },
+    [getContext]
+  );
 
   const playSendSound = useCallback(() => {
     playTone(600, 300, 0.25, 0.08);
@@ -180,27 +250,30 @@ export const useSounds = () => {
     playTone(800, 400, 0.35, 0.1);
   }, [playTone]);
 
-  const playConfettiSound = useCallback((intensity: number = 0.5) => {
-    try {
-      const ctx = getContext();
-      const buffer = confettiAudioBuffer;
-      if (!ctx || !buffer || ctx.state !== "running") return;
+  const playConfettiSound = useCallback(
+    (intensity: number = 0.5) => {
+      try {
+        const ctx = getContext();
+        const buffer = confettiAudioBuffer;
+        if (!ctx || !buffer || ctx.state !== "running") return;
 
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.playbackRate.value = 1.2 - intensity * 0.4;
-      source.detune.value = Math.random() * 100 - 50;
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.playbackRate.value = 1.2 - intensity * 0.4;
+        source.detune.value = Math.random() * 100 - 50;
 
-      const gainNode = ctx.createGain();
-      gainNode.gain.value = 0.15 + intensity * 0.5;
+        const gainNode = ctx.createGain();
+        gainNode.gain.value = 0.15 + intensity * 0.5;
 
-      source.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      source.start(0);
-    } catch (err) {
-      console.error(err);
-    }
-  }, [getContext]);
+        source.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        source.start(0);
+      } catch (err) {
+        console.error(err);
+      }
+    },
+    [getContext]
+  );
 
   const chargeOscRef = useRef<OscillatorNode | null>(null);
   const chargeGainRef = useRef<GainNode | null>(null);
@@ -223,7 +296,7 @@ export const useSounds = () => {
 
       chargeOscRef.current = osc;
       chargeGainRef.current = gain;
-    } catch { }
+    } catch {}
   }, [getContext]);
 
   const updateChargeTone = useCallback((intensity: number = 0) => {
@@ -237,7 +310,7 @@ export const useSounds = () => {
   const stopChargeTone = useCallback(() => {
     try {
       chargeOscRef.current?.stop();
-    } catch { }
+    } catch {}
     chargeOscRef.current = null;
     chargeGainRef.current = null;
   }, []);

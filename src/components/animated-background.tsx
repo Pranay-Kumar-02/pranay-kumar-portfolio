@@ -349,8 +349,11 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
     };
 
     window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("mousemove", onPointerMove as unknown as EventListener, { passive: true });
     window.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("mousedown", onPointerDown as unknown as EventListener);
     window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("mouseup", onPointerUp as unknown as EventListener);
     window.addEventListener("pointerleave", onPointerLeaveWindow);
 
     splineApp.addEventListener("keyUp", onSplineKeyUp);
@@ -359,8 +362,11 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
     return () => {
       unsubInterest();
       window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("mousemove", onPointerMove as unknown as EventListener);
       window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("mousedown", onPointerDown as unknown as EventListener);
       window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("mouseup", onPointerUp as unknown as EventListener);
       window.removeEventListener("pointerleave", onPointerLeaveWindow);
 
       try {

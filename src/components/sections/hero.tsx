@@ -1,8 +1,9 @@
+"use client";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import React from "react";
 import { Button } from "../ui/button";
-import { File, Github, Linkedin } from "lucide-react";
+import { File } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -11,7 +12,7 @@ import {
 import { usePreloader } from "../preloader";
 import { BlurIn, BoxReveal } from "../reveal-animations";
 import ScrollDownIcon from "../scroll-down-icon";
-import { SiGithub, SiLeetcode, SiLinkedin } from "react-icons/si";
+import { SiGithub, SiInstagram, SiLinkedin } from "react-icons/si";
 import { config } from "@/data/config";
 
 import SectionWrapper from "../ui/section-wrapper";
@@ -85,70 +86,69 @@ const HeroSection = () => {
                 </BlurIn>
               </div>
               <div className="mt-8 flex flex-col gap-3 w-fit">
-                <BoxReveal delay={2} width="100%" >
-                  <Button asChild className="flex items-center gap-2 w-full">
-                    <a
-                      href="/Pranay_Kumar_Vonamala_Resume.pdf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      download="Pranay_Kumar_Vonamala_Resume.pdf"
-                    >
+                <Link
+                  href="/Pranay_Kumar_Vonamala_Resume.pdf"
+                  target="_blank"
+                  download="Pranay_Kumar_Vonamala_Resume.pdf"
+                  className="flex-1"
+                >
+                  <BoxReveal delay={2} width="100%" >
+                    <Button className="flex items-center gap-2 w-full">
                       <File size={24} />
-                      <span>Resume</span>
-                    </a>
-                  </Button>
-                </BoxReveal>
+                      <p>Resume</p>
+                    </Button>
+                  </BoxReveal>
+                </Link>
                 <div className="md:self-start flex gap-3">
                   <Tooltip delayDuration={300}>
                     <TooltipTrigger asChild>
-                      <Button
-                        asChild
-                        variant={"outline"}
-                        className="block w-full overflow-hidden"
-                      >
-                        <Link href={"#contact"}>
+                      <Link href={"#contact"}>
+                        <Button
+                          variant={"outline"}
+                          className="block w-full overflow-hidden"
+                        >
                           Hire Me
-                        </Link>
-                      </Button>
+                        </Button>
+                      </Link>
                     </TooltipTrigger>
                     <TooltipContent side="bottom">
-                      <p>Available for high-impact SWE & AI roles 🚀</p>
+                      <p>pls 🥹 🙏</p>
                     </TooltipContent>
                   </Tooltip>
                   <div className="flex items-center h-full gap-2">
-                    <Button asChild variant={"outline"}>
-                      <a
-                        href={config.social.leetcode}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="LeetCode Profile"
-                        className="cursor-can-hover"
-                      >
-                        <SiLeetcode size={24} />
-                      </a>
-                    </Button>
-                    <Button asChild variant={"outline"}>
-                      <a
-                        href={config.social.github}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="GitHub Profile"
-                        className="cursor-can-hover"
-                      >
+                    <Link
+                      href={config.social.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Instagram Profile"
+                      className="cursor-can-hover"
+                    >
+                      <Button variant={"outline"}>
+                        <SiInstagram size={24} />
+                      </Button>
+                    </Link>
+                    <Link
+                      href={config.social.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="GitHub Profile"
+                      className="cursor-can-hover"
+                    >
+                      <Button variant={"outline"}>
                         <SiGithub size={24} />
-                      </a>
-                    </Button>
-                    <Button asChild variant={"outline"}>
-                      <a
-                        href={config.social.linkedin}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="LinkedIn Profile"
-                        className="cursor-can-hover"
-                      >
+                      </Button>
+                    </Link>
+                    <Link
+                      href={config.social.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="LinkedIn Profile"
+                      className="cursor-can-hover"
+                    >
+                      <Button variant={"outline"}>
                         <SiLinkedin size={24} />
-                      </a>
-                    </Button>
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>
