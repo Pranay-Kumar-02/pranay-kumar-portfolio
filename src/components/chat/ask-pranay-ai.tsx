@@ -115,10 +115,11 @@ export const AskPranayAIChat: React.FC = () => {
             // Studio-grade deep obsidian glass styling
             "bg-[#090b10]/95 backdrop-blur-2xl text-zinc-100",
             "border border-white/[0.08] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85),0_0_35px_-10px_rgba(6,182,212,0.12)]",
-            // Desktop dimensions anchored strictly bottom-right
-            "sm:bottom-6 sm:right-6 sm:w-[420px] sm:h-[640px] sm:max-h-[min(700px,calc(100dvh-48px))] sm:rounded-2xl sm:inset-x-auto",
-            // Mobile dimensions (sheet anchored to bottom)
-            "bottom-0 inset-x-0 h-[88dvh] max-h-[88dvh] rounded-t-3xl sm:rounded-2xl"
+            // Strictly anchor to right side on all screen sizes
+            "right-4 sm:right-6 bottom-4 sm:bottom-6 left-auto",
+            // Dimensions & rounded shape
+            "w-[calc(100vw-2rem)] sm:w-[420px] max-w-[420px]",
+            "h-[min(640px,calc(100dvh-2.5rem))] sm:h-[640px] sm:max-h-[min(700px,calc(100dvh-48px))] rounded-2xl"
           )}
         >
           {/* Subtle top edge cyan rim highlight */}

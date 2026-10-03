@@ -14,24 +14,25 @@ async function run() {
     ws.addEventListener('message', h);
     ws.send(JSON.stringify({ id: i, method: m, params: p }));
   });
+
   ws.onopen = async () => {
     await send('Runtime.enable');
     const res = await send('Runtime.evaluate', {
       expression: `(() => {
         const app = window.__splineApp;
+        const b = app?.findObjectByName('bongo-cat');
         const k = app?.findObjectByName('keyboard');
-        const threeScene = app?._scene;
-        const threeKbd = threeScene?.getObjectByName('keyboard');
         return {
-          splineKbdRot: { x: k?.rotation?.x, y: k?.rotation?.y, z: k?.rotation?.z },
-          threeKbdRot: { x: threeKbd?.rotation?.x, y: threeKbd?.rotation?.y, z: threeKbd?.rotation?.z },
-          activeSection: window.location.hash || 'hero',
-          scrollY: window.scrollY
+          bongoParentName: b?.parent?.name,
+          bongoParentType: b?.parent?.type,
+          bongoIsChildOfKbd: b?.parent === k,
+          kbdChildren: k?.children?.map(c => c.name),
+          allObjects: app?.getAllObjects()?.map(o => ({ name: o.name, parentName: o.parent?.name }))
         };
       })()`,
       returnByValue: true
     });
-    console.log(JSON.stringify(res.result.value, null, 2));
+    console.log(JSON.stringify(res.result?.value, null, 2));
     ws.close();
   };
 }

@@ -32,6 +32,8 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
 
   const [selectedSkill, setSelectedSkill] = useState<Skill | null>(null);
   const [activeSection, setActiveSection] = useState<Section>("hero");
+  const activeSectionRef = useRef<Section>("hero");
+  activeSectionRef.current = activeSection;
 
   // Animation controllers refs
   const bongoAnimationRef = useRef<{ start: () => void; stop: () => void }>(null);
@@ -41,6 +43,7 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
 
   const activeKeyObjRef = useRef<SPEObject | null>(null);
   const currentInterestRef = useRef<Interest | null>(null);
+  const applyInterestClusteringRef = useRef<((interest: Interest | null) => void) | null>(null);
   const keyBaseMapRef = useRef<Map<string, { position: { x: number; y: number; z: number }; scale: { x: number; y: number; z: number } }>>(new Map());
   const raycasterRef = useRef(new Raycaster());
   const mouseRef = useRef(new Vector2());
@@ -321,6 +324,7 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
       });
     };
 
+    applyInterestClusteringRef.current = applyInterestClustering;
     const unsubInterest = subscribeToInterest(applyInterestClustering);
 
     // Spline keyboard events (physical keyboard input)
@@ -360,6 +364,7 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
     splineApp.addEventListener("keyDown", onSplineKeyDown);
 
     return () => {
+      applyInterestClusteringRef.current = null;
       unsubInterest();
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("mousemove", onPointerMove as unknown as EventListener);
@@ -398,43 +403,64 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
         end,
         scrub: true,
         onEnter: () => {
+          activeSectionRef.current = targetSection;
           setActiveSection(targetSection);
           const state = getKeyboardState({ section: targetSection, isMobile });
-          gsap.to(kbd.scale, { ...state.scale, duration: 0.85, ease: "power2.out" });
-          gsap.to(kbd.position, { ...state.position, duration: 0.85, ease: "power2.out" });
-          gsap.to(kbd.rotation, { ...state.rotation, duration: 0.85, ease: "power2.out" });
+          gsap.to(kbd.scale, { ...state.scale, duration: 0.85, ease: "power2.out", overwrite: "auto" });
+          gsap.to(kbd.position, { ...state.position, duration: 0.85, ease: "power2.out", overwrite: "auto" });
+          gsap.to(kbd.rotation, { ...state.rotation, duration: 0.85, ease: "power2.out", overwrite: "auto" });
         },
         onLeaveBack: () => {
+          activeSectionRef.current = prevSection;
           setActiveSection(prevSection);
           const state = getKeyboardState({ section: prevSection, isMobile });
-          gsap.to(kbd.scale, { ...state.scale, duration: 0.85, ease: "power2.out" });
-          gsap.to(kbd.position, { ...state.position, duration: 0.85, ease: "power2.out" });
-          gsap.to(kbd.rotation, { ...state.rotation, duration: 0.85, ease: "power2.out" });
+          gsap.to(kbd.scale, { ...state.scale, duration: 0.85, ease: "power2.out", overwrite: "auto" });
+          gsap.to(kbd.position, { ...state.position, duration: 0.85, ease: "power2.out", overwrite: "auto" });
+          gsap.to(kbd.rotation, { ...state.rotation, duration: 0.85, ease: "power2.out", overwrite: "auto" });
         },
       },
     });
   };
 
-  const setupScrollAnimations = (): gsap.core.Timeline[] => {
-    if (!splineApp || !splineContainer.current) return [];
+  const setupScrollAnimations = (): { timelines: gsap.core.Timeline[]; cleanup: () => void } => {
+    if (!splineApp || !splineContainer.current) return { timelines: [], cleanup: () => {} };
     const kbd = splineApp.findObjectByName("keyboard");
-    if (!kbd) return [];
+    if (!kbd) return { timelines: [], cleanup: () => {} };
 
     // Initial state
     const heroState = getKeyboardState({ section: "hero", isMobile });
     gsap.set(kbd.scale, heroState.scale);
     gsap.set(kbd.position, heroState.position);
+    gsap.set(kbd.rotation, heroState.rotation);
+
+    const onScrollTop = () => {
+      if (window.scrollY < 80 && activeSectionRef.current !== "hero") {
+        activeSectionRef.current = "hero";
+        setActiveSection("hero");
+        gsap.to(kbd.scale, { ...heroState.scale, duration: 0.85, ease: "power2.out", overwrite: "auto" });
+        gsap.to(kbd.position, { ...heroState.position, duration: 0.85, ease: "power2.out", overwrite: "auto" });
+        gsap.to(kbd.rotation, { ...heroState.rotation, duration: 0.85, ease: "power2.out", overwrite: "auto" });
+      }
+    };
+    window.addEventListener("scroll", onScrollTop, { passive: true });
 
     // Section transitions
     // Scroll trigger chain must match the actual DOM/scroll order:
     // hero → skills → experience(about) → projects → interests → contact
-    return [
+    const timelines = [
       createSectionTimeline("#skills", "skills", "hero"),
       createSectionTimeline("#experience", "experience", "skills"),
       createSectionTimeline("#projects", "projects", "experience", "top 70%"),
       createSectionTimeline("#interests", "interests", "projects"),
       createSectionTimeline("#contact", "contact", "interests", "top 30%"),
     ].filter(Boolean) as gsap.core.Timeline[];
+
+    return {
+      timelines,
+      cleanup: () => {
+        window.removeEventListener("scroll", onScrollTop);
+      },
+    };
   };
 
   const getBongoAnimation = () => {
@@ -593,6 +619,8 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
     setKeyboardRevealed(true);
 
     const currentState = getKeyboardState({ section: activeSection, isMobile });
+    gsap.set(kbd.rotation, currentState.rotation);
+    gsap.set(kbd.position, currentState.position);
     gsap.fromTo(
       kbd.scale,
       { x: currentState.scale.x * 0.8, y: currentState.scale.y * 0.8, z: currentState.scale.z * 0.8 },
@@ -600,6 +628,7 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
         ...currentState.scale,
         duration: 0.9,
         ease: "power3.out",
+        overwrite: "auto",
       }
     );
 
@@ -634,7 +663,7 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
     if (!splineApp || !sceneReady) return;
     ensureKeycapsVisible(splineApp);
     const cleanupInteractions = handleSplineInteractions();
-    const timelines = setupScrollAnimations();
+    const { timelines, cleanup: cleanupScroll } = setupScrollAnimations();
     bongoAnimationRef.current = getBongoAnimation();
     keycapAnimationsRef.current = getKeycapsAnimation();
 
@@ -642,6 +671,7 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
 
     return () => {
       cleanupInteractions?.();
+      cleanupScroll?.();
       bongoAnimationRef.current?.stop();
       keycapAnimationsRef.current?.stop();
       timelines.forEach((tl) => {
@@ -669,44 +699,82 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
     const kbd = splineApp.findObjectByName("keyboard");
 
     if (kbd) {
+      // Gentle, subtle ambient floating wobble for hero — NEVER flips 180° backwards
       rotateKeyboard = gsap.to(kbd.rotation, {
-        y: Math.PI * 2 + kbd.rotation.y,
-        duration: 10,
+        y: 0.12,
+        x: 0.04,
+        duration: 4,
         repeat: -1,
         yoyo: true,
         yoyoEase: true,
-        ease: "back.inOut",
-        delay: 2.5,
-        paused: true, // Start paused
+        ease: "sine.inOut",
+        delay: 1.5,
+        paused: true,
       });
 
-      teardownKeyboard = gsap.fromTo(
-        kbd.rotation,
-        { y: 0, x: -Math.PI, z: 0 },
-        {
-          y: -Math.PI / 2,
-          duration: 5,
-          repeat: -1,
-          yoyo: true,
-          yoyoEase: true,
-          delay: 2.5,
-          immediateRender: false,
-          paused: true,
-        }
-      );
+      // Subtle ambient hover for contact section — NEVER inverts upside down
+      teardownKeyboard = gsap.to(kbd.rotation, {
+        y: Math.PI / 16,
+        duration: 4,
+        repeat: -1,
+        yoyo: true,
+        yoyoEase: true,
+        ease: "sine.inOut",
+        delay: 1.5,
+        paused: true,
+      });
     }
 
     const manageAnimations = async () => {
       ensureKeycapsVisible(splineApp);
+      const state = getKeyboardState({ section: activeSection, isMobile });
+
+      if (activeSection !== "interests") {
+        applyInterestClusteringRef.current?.(null);
+      }
+
       // Handle Rotate/Teardown Tweens
       if (activeSection === "hero") {
-        rotateKeyboard?.restart();
         teardownKeyboard?.pause();
+        if (kbd) {
+          gsap.to(kbd.rotation, {
+            ...state.rotation,
+            duration: 0.85,
+            ease: "power2.out",
+            overwrite: "auto",
+            onComplete: () => {
+              if (!cancelled && activeSection === "hero") {
+                rotateKeyboard?.restart();
+              }
+            },
+          });
+        }
       } else if (activeSection === "contact") {
         rotateKeyboard?.pause();
+        if (kbd) {
+          gsap.to(kbd.rotation, {
+            ...state.rotation,
+            duration: 0.85,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+        }
+        await sleep(600);
+        if (cancelled) return;
+        teardownKeyboard?.restart();
+        keycapAnimationsRef.current?.start();
       } else {
         rotateKeyboard?.pause();
         teardownKeyboard?.pause();
+        if (kbd) {
+          gsap.to(kbd.rotation, {
+            ...state.rotation,
+            duration: 0.85,
+            ease: "power2.out",
+            overwrite: "auto",
+          });
+        }
+        keycapAnimationsRef.current?.stop();
       }
 
       // Handle Bongo Cat
@@ -741,7 +809,7 @@ const KeyboardScene = ({ maxDpr }: { maxDpr: number }) => {
       rotateKeyboard?.kill();
       teardownKeyboard?.kill();
     };
-  }, [activeSection, splineApp]);
+  }, [activeSection, splineApp, isMobile]);
 
   // Reveal keyboard on load/route change once scene is ready
   useEffect(() => {
