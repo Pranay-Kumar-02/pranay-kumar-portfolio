@@ -11,6 +11,7 @@ import FunnyThemeToggle from "../theme/funny-theme-toggle";
 import { Button } from "../ui/button";
 import { config } from "@/data/config";
 import OnlineUsers from "../realtime/online-users";
+import SoundtrackControls from "../soundtrack-controls";
 
 interface HeaderProps {
   loader?: boolean;
@@ -27,8 +28,7 @@ const Header = ({ loader }: HeaderProps) => {
       )}
       style={{
         background: isActive ? "hsl(var(--background) / .8)" : "transparent",
-        // backgroundImage:
-        //   "linear-gradient(0deg, rgba(0, 0, 0, 0), rgb(0, 0, 0))",
+        backdropFilter: isActive ? "blur(12px)" : "none",
       }}
       initial={{
         y: -80,
@@ -41,13 +41,6 @@ const Header = ({ loader }: HeaderProps) => {
         duration: 0.8,
       }}
     >
-      {/* <div
-        className="absolute inset-0 "
-        style={{
-          mask: "linear-gradient(rgb(0, 0, 0) 0%, rgba(0, 0, 0, 0) 12.5%)",
-        }}
-      >
-      </div> */}
       <div className={cn(styles.bar, "flex items-center justify-between")}>
         <Link href="/" className="flex items-center justify-center">
           <Button variant={"link"} className="text-md">
@@ -55,34 +48,44 @@ const Header = ({ loader }: HeaderProps) => {
           </Button>
         </Link>
 
-        <FunnyThemeToggle className="w-6 h-6 mr-4 hidden md:flex" />
-        {isHome && process.env.NEXT_PUBLIC_WS_URL && <OnlineUsers />}
-        <Button
-          variant={"ghost"}
-          onClick={() => setIsActive(!isActive)}
-          aria-label={isActive ? "Close menu" : "Open menu"}
-          aria-expanded={isActive}
-          className={cn(
-            styles.el,
-            "m-0 p-0 h-6 bg-transparent flex items-center justify-center"
-          )}
-        >
-          <div className="relative hidden md:flex items-center">
-            <motion.p
-              variants={opacity}
-              animate={!isActive ? "open" : "closed"}
-            >
-              Menu
-            </motion.p>
-            <motion.p variants={opacity} animate={isActive ? "open" : "closed"}>
-              Close
-            </motion.p>
-          </div>
-          <div
-            className={`${styles.burger} ${isActive ? styles.burgerActive : ""
-              }`}
-          ></div>
-        </Button>
+        {/* Single horizontal utility row: Theme | Mute | Outro | Menu | Hamburger */}
+        <div className="flex items-center gap-2 sm:gap-2.5 pointer-events-auto">
+          {/* 1. Theme / Moon */}
+          <FunnyThemeToggle className="w-6 h-6 flex cursor-pointer" />
+
+          {/* 2. Mute / Unmute & 3. Music / "Outro" */}
+          <SoundtrackControls />
+
+          {isHome && process.env.NEXT_PUBLIC_WS_URL && <OnlineUsers />}
+
+          {/* 4 & 5. Menu & Hamburger */}
+          <Button
+            variant={"ghost"}
+            onClick={() => setIsActive(!isActive)}
+            aria-label={isActive ? "Close menu" : "Open menu"}
+            aria-expanded={isActive}
+            className={cn(
+              styles.el,
+              "m-0 p-0 h-6 bg-transparent flex items-center justify-center cursor-pointer ml-1"
+            )}
+          >
+            <div className="relative hidden md:flex items-center">
+              <motion.p
+                variants={opacity}
+                animate={!isActive ? "open" : "closed"}
+              >
+                Menu
+              </motion.p>
+              <motion.p variants={opacity} animate={isActive ? "open" : "closed"}>
+                Close
+              </motion.p>
+            </div>
+            <div
+              className={`${styles.burger} ${isActive ? styles.burgerActive : ""
+                }`}
+            ></div>
+          </Button>
+        </div>
       </div>
       <motion.div
         variants={background}

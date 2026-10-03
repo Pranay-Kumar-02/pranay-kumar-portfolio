@@ -1,11 +1,9 @@
 .header {
   z-index: 9;
-  // background-color: hsl(var(--background) / .8);
   position: fixed;
   width: 100%;
   box-sizing: border-box;
   padding: 15px;
-  backdrop-filter: blur(12px);
 
   .background {
     background-color: hsl(240 10% 3.9%); // constant color instead of using a css variable

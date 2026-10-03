@@ -4,6 +4,7 @@ import { ThemeProvider } from "./theme-provider";
 import { Toaster } from "./ui/toaster";
 import { TooltipProvider } from "./ui/tooltip";
 import { ChatbotProvider } from "@/lib/chatbot-context";
+import { SoundtrackProvider } from "@/contexts/soundtrack-context";
 
 export const Providers = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -13,14 +14,16 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
       disableTransitionOnChange
     >
       <Preloader>
-        <SocketContextProvider>
-          <TooltipProvider>
-            <ChatbotProvider>
-              {children}
-            </ChatbotProvider>
-          </TooltipProvider>
-          <Toaster />
-        </SocketContextProvider>
+        <SoundtrackProvider>
+          <SocketContextProvider>
+            <TooltipProvider>
+              <ChatbotProvider>
+                {children}
+              </ChatbotProvider>
+            </TooltipProvider>
+            <Toaster />
+          </SocketContextProvider>
+        </SoundtrackProvider>
       </Preloader>
     </ThemeProvider>
   );
