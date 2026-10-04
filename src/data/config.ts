@@ -30,7 +30,7 @@ const config = {
   ],
   author: "Pranay Kumar",
   fullName: "Pranay Kumar Vonamala",
-  email: "vonamala.pranay.official@gmail.com",
+  email: "vonamala.pranay@gmail.com",
   site: "https://pranay-portfolio-alpha.vercel.app",
 
   // for github stars button

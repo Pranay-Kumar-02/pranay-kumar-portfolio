@@ -87,6 +87,13 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
+      if (process.env.NODE_ENV === "production") {
+        console.error("[send/route] RESEND_API_KEY is not configured in production.");
+        return Response.json(
+          { error: "Email service is temporarily unavailable. Please email directly." },
+          { status: 503 }
+        );
+      }
       console.warn("[send/route] RESEND_API_KEY is not configured.");
       return Response.json(
         { message: "Message received (Local development mode - email service not configured)." },
@@ -95,9 +102,13 @@ export async function POST(req: Request) {
     }
 
     const resend = new Resend(apiKey);
+    const recipientEmail = process.env.RESEND_TO_EMAIL || config.email;
+    const fromAddress = process.env.RESEND_FROM_EMAIL || "Portfolio <onboarding@resend.dev>";
+
     const { data: resendData, error: resendError } = await resend.emails.send({
-      from: "Portfolio <onboarding@resend.dev>",
-      to: [config.email],
+      from: fromAddress,
+      to: [recipientEmail],
+      replyTo: zodData.email,
       subject: `New message from ${zodData.fullName}`,
       react: EmailTemplate({
         fullName: zodData.fullName,

@@ -202,7 +202,7 @@ export const PRANAY_KNOWLEDGE: PranayKnowledgeBase = {
     portfolio: "https://pranay-portfolio-alpha.vercel.app",
   },
   contact: {
-    email: "vonamala.pranay.official@gmail.com",
+    email: "vonamala.pranay@gmail.com",
     hireStatus: "Available for high-impact SWE & AI engineering roles.",
   },
   strictBoundaries: [

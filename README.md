@@ -266,7 +266,7 @@ This portfolio is optimized for zero-configuration deployment on **Vercel**:
 - **GitHub**: [@Pranay-Kumar-02](https://github.com/Pranay-Kumar-02)
 - **LinkedIn**: [linkedin.com/in/pranay-kumar-vonamala](https://www.linkedin.com/in/pranay-kumar-vonamala/)
 - **LeetCode**: [leetcode.com/u/Pranayyy_](https://leetcode.com/u/Pranayyy_/)
-- **Email**: [vonamala.pranay.official@gmail.com](mailto:vonamala.pranay.official@gmail.com)
+- **Email**: [vonamala.pranay@gmail.com](mailto:vonamala.pranay@gmail.com)
 
 ---
 
