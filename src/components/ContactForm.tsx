@@ -69,9 +69,13 @@ const ContactForm = () => {
         clearTimeout(timer);
       }, 1000);
     } catch (err) {
+      const errorMessage =
+        err instanceof Error && err.message
+          ? err.message
+          : "Something went wrong! Please try again.";
       toast({
         title: "Error",
-        description: "Something went wrong! Please try again.",
+        description: errorMessage,
         className: cn(
           "top-0 w-full flex justify-center fixed md:max-w-7xl md:top-4 md:right-4"
         ),
