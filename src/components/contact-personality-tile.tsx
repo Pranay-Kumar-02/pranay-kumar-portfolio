@@ -29,6 +29,47 @@ export const ContactPersonalityTile: React.FC<ContactPersonalityTileProps> = ({
         className
       )}
     >
+      {/* Editorial curved arrow connecting the tile to the Contact Form */}
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 80 80"
+        className="absolute -left-16 sm:-left-[72px] top-2 sm:top-2.5 w-18 sm:w-20 h-18 sm:h-20 pointer-events-none overflow-visible hidden md:block text-cyan-400/80"
+      >
+        {/* Smooth double-bend S-curve with two directional turns */}
+        <motion.path
+          d="M 72 62 C 55 72, 34 68, 40 46 C 45 26, 24 20, 8 28"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={{ pathLength: 0, opacity: 0 }}
+          whileInView={{ pathLength: 1, opacity: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{
+            duration: shouldReduceMotion ? 0 : 0.75,
+            ease: "easeInOut",
+            delay: 0.2,
+          }}
+        />
+        {/* Hand-crafted arrowhead pointing directly toward the Contact Form */}
+        <motion.path
+          d="M 15 22 L 7 28 L 15 34"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{
+            duration: shouldReduceMotion ? 0 : 0.2,
+            delay: shouldReduceMotion ? 0 : 0.9,
+          }}
+        />
+      </svg>
+
       <motion.div
         animate={
           shouldReduceMotion
@@ -43,7 +84,7 @@ export const ContactPersonalityTile: React.FC<ContactPersonalityTileProps> = ({
           ease: "easeInOut",
         }}
         className={cn(
-          // Precise compact sizing: 270px wide, ~110-120px height
+          // Precise compact sizing: 270px wide, ~100-110px height
           "w-[270px] sm:w-[280px]",
           "p-3.5",
           // Subtle corner radius - not a huge rounded card
@@ -56,14 +97,6 @@ export const ContactPersonalityTile: React.FC<ContactPersonalityTileProps> = ({
           "shadow-[0_8px_24px_rgba(0,0,0,0.55)]"
         )}
       >
-        {/* Tiny, understated status indicator */}
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <span className="size-1.5 rounded-full bg-cyan-400 inline-block animate-pulse" />
-          <span className="text-[9px] font-mono tracking-widest text-cyan-400 font-semibold uppercase">
-            LIVE
-          </span>
-        </div>
-
         {/* Compact, confident headline */}
         <h4 className="text-[13px] font-semibold text-zinc-100 tracking-tight leading-snug">
           bro, it actually works.
