@@ -42,7 +42,7 @@ const ContactSection = () => {
             <ContactForm />
           </CardContent>
         </Card>
-        <div className="flex flex-col justify-start items-start mt-4 md:mt-20 lg:mt-20 md:pl-2 lg:pl-4">
+        <div className="flex flex-col justify-start items-start mt-4 md:mt-20 lg:mt-20 md:pl-6 lg:pl-10">
           <ContactPersonalityTile />
         </div>
       </div>

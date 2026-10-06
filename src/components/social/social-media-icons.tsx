@@ -26,23 +26,20 @@ const BUTTONS = [
 ];
 
 const SocialMediaButtons = () => {
-  const ref = useRef<HTMLDivElement>(null);
-  const show = useInView(ref, { once: true });
   return (
-    <div ref={ref} className="z-10">
-      {show &&
-        BUTTONS.map((button) => (
-          <Button asChild variant={"ghost"} key={button.name} className="size-10 p-0">
-            <a
-              href={button.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={button.name}
-            >
-              {button.icon}
-            </a>
-          </Button>
-        ))}
+    <div className="z-10 flex items-center justify-center gap-2">
+      {BUTTONS.map((button) => (
+        <Button asChild variant={"ghost"} key={button.name} className="size-10 p-0 text-zinc-400 hover:text-cyan-400 hover:bg-zinc-800/40">
+          <a
+            href={button.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={button.name}
+          >
+            {button.icon}
+          </a>
+        </Button>
+      ))}
     </div>
   );
 };
