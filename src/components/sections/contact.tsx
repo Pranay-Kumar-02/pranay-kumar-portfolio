@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import ContactForm from "../ContactForm";
+import ContactPersonalityTile from "../contact-personality-tile";
 import { config } from "@/data/config";
 import { SectionHeader } from "./section-header";
 import SectionWrapper from "../ui/section-wrapper";
@@ -20,7 +21,7 @@ const ContactSection = () => {
           LET&apos;S WORK <br />
           TOGETHER
         </>} />
-      <div className="grid grid-cols-1 md:grid-cols-2 z-[9999] mx-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start z-[9999] mx-4">
         <Card className="min-w-7xl bg-white/70 dark:bg-black/70 backdrop-blur-sm rounded-xl mt-10 md:mt-20">
           <CardHeader>
             <CardTitle className="text-4xl">Contact Form</CardTitle>
@@ -41,6 +42,9 @@ const ContactSection = () => {
             <ContactForm />
           </CardContent>
         </Card>
+        <div className="flex flex-col justify-start items-start mt-4 md:mt-20 lg:mt-20 md:pl-2 lg:pl-4">
+          <ContactPersonalityTile />
+        </div>
       </div>
     </SectionWrapper>
   );
