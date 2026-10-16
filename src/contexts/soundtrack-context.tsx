@@ -14,6 +14,7 @@ interface SoundtrackContextType {
   isMuted: boolean;
   togglePlay: () => void;
   toggleMute: () => void;
+  startExperienceSoundtrack: () => void;
   trackTitle: string;
   isReady: boolean;
 }
@@ -292,6 +293,40 @@ export function SoundtrackProvider({ children }: { children: React.ReactNode }) 
     }
   }, [fadeVolume]);
 
+  const startExperienceSoundtrack = useCallback(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    cleanupFallback();
+
+    if (!hasStartedRef.current || audio.currentTime < 89.5) {
+      audio.currentTime = START_TIME;
+      hasStartedRef.current = true;
+    }
+    audio.muted = false;
+    audio.volume = 0;
+
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsPlaying(true);
+          if (!isMutedRef.current) {
+            fadeVolume(TARGET_VOLUME, 1200);
+          }
+        })
+        .catch((err) => {
+          console.warn("[Soundtrack] Play error on enter experience:", err);
+        });
+    }
+  }, [cleanupFallback, fadeVolume]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any).__startExperienceSoundtrack = startExperienceSoundtrack;
+    }
+  }, [startExperienceSoundtrack]);
+
   return (
     <SoundtrackContext.Provider
       value={{
@@ -299,6 +334,7 @@ export function SoundtrackProvider({ children }: { children: React.ReactNode }) 
         isMuted,
         togglePlay,
         toggleMute,
+        startExperienceSoundtrack,
         trackTitle: "Outro",
         isReady,
       }}

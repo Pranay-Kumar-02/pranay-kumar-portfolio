@@ -13,8 +13,8 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
       defaultTheme="dark"
       disableTransitionOnChange
     >
-      <Preloader>
-        <SoundtrackProvider>
+      <SoundtrackProvider>
+        <Preloader>
           <SocketContextProvider>
             <TooltipProvider>
               <ChatbotProvider>
@@ -23,8 +23,8 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
             </TooltipProvider>
             <Toaster />
           </SocketContextProvider>
-        </SoundtrackProvider>
-      </Preloader>
+        </Preloader>
+      </SoundtrackProvider>
     </ThemeProvider>
   );
 };

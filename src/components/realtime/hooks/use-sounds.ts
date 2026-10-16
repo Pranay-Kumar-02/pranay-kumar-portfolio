@@ -68,6 +68,51 @@ function handleFirstUserGesture() {
   }
 }
 
+export function unlockAudioContext(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+
+  if (!isAudioInitialized) {
+    initAudioEngine();
+  }
+
+  if (!sharedAudioCtx) {
+    const AudioCtxClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext })
+        .webkitAudioContext;
+    if (AudioCtxClass) {
+      sharedAudioCtx = new AudioCtxClass({ latencyHint: "interactive" });
+      (window as unknown as { __sharedAudioCtx?: AudioContext }).__sharedAudioCtx = sharedAudioCtx;
+    }
+  }
+
+  if (sharedAudioCtx && sharedAudioCtx.state === "suspended") {
+    return sharedAudioCtx
+      .resume()
+      .then(() => {
+        try {
+          const silent = sharedAudioCtx!.createBuffer(1, 1, 22050);
+          const src = sharedAudioCtx!.createBufferSource();
+          src.buffer = silent;
+          src.connect(sharedAudioCtx!.destination);
+          src.start(0);
+        } catch {}
+
+        if (fallbackPressAudio) fallbackPressAudio.load();
+        if (fallbackReleaseAudio) fallbackReleaseAudio.load();
+
+        removeUnlockListeners();
+      })
+      .catch(() => {});
+  } else if (sharedAudioCtx && sharedAudioCtx.state === "running") {
+    removeUnlockListeners();
+    return Promise.resolve();
+  }
+
+  return Promise.resolve();
+}
+
+
 function initAudioEngine() {
   if (typeof window === "undefined" || isAudioInitialized) return;
   isAudioInitialized = true;

@@ -17,11 +17,13 @@ import { usePerfProfile } from "@/hooks/use-perf-profile";
 type PreloaderContextType = {
   isLoading: boolean;
   loadingPercent: number;
+  enterExperience: () => void;
   bypassLoading: () => void;
 };
 const INITIAL: PreloaderContextType = {
   isLoading: true,
   loadingPercent: 0,
+  enterExperience: () => {},
   bypassLoading: () => {},
 };
 export const preloaderContext = createContext<PreloaderContextType>(INITIAL);
@@ -63,17 +65,16 @@ function Preloader({ children, disabled = false }: PreloaderProps) {
   const { disable3D, ready: perfReady } = usePerfProfile();
 
   const bypassLoading = () => {
+    // Asset load signals in background do not dismiss loader;
+    // only the user clicking "ENTER EXPERIENCE →" enters the experience.
+  };
+
+  const enterExperience = () => {
     hasCompletedInitialLoad.current = true;
     if (completionTimeout.current) clearTimeout(completionTimeout.current);
     loadingTween.current?.kill();
-    setLoadingPercent(100);
     setIsLoading(false);
   };
-
-  useEffect(() => {
-    if (perfReady && disable3D) bypassLoading();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [perfReady, disable3D]);
 
   const loadingPercentRef = useRef<{ value: number }>({ value: 0 });
 
@@ -95,12 +96,8 @@ function Preloader({ children, disabled = false }: PreloaderProps) {
         setLoadingPercent(loadingPercentRef.current.value);
       },
       onComplete: () => {
-        hasCompletedInitialLoad.current = true;
         setLoadingPercent(100);
-        // Brief intentional pause at 100% so the user registers full completion
-        completionTimeout.current = setTimeout(() => {
-          setIsLoading(false);
-        }, 180);
+        // Stays at 100% until the user interacts with ENTER EXPERIENCE →
       },
     });
 
@@ -112,7 +109,7 @@ function Preloader({ children, disabled = false }: PreloaderProps) {
 
   return (
     <preloaderContext.Provider
-      value={{ isLoading, bypassLoading, loadingPercent }}
+      value={{ isLoading, bypassLoading, enterExperience, loadingPercent }}
     >
       <AnimatePresence mode="wait">{isLoading && <Loader />}</AnimatePresence>
       {children}
